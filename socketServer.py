@@ -36,7 +36,7 @@ async def print_message(sid, message):
     # print(app.logger())
     # await a successful emit of our reversed message
     # back to the client
-    await sio.emit('clientMessage', message['msg'])
+    await sio.emit('clientMessage', message['msg'], room=sid)
 
 # @sio.on('connect')
 # def serverMessage():
@@ -54,4 +54,4 @@ app.router.add_get('/', index)
 # We kick off our server
 if __name__ == '__main__':
     sio.start_background_task(background_task)
-    web.run_app(app, port=8888)
+    web.run_app(app, port=8983)
