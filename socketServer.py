@@ -1,6 +1,5 @@
 from aiohttp import web
 import socketio
-import time
 import datetime
 
 # creates a new Async Socket IO Server
