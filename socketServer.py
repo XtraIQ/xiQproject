@@ -52,6 +52,15 @@ sio = socketio.AsyncServer()
 app = web.Application()
 sio.attach(app)
 
+
+async def background_task():
+    """Example of how to send server generated events to clients."""
+    count = 0
+    while True:
+        await sio.sleep(10)
+        await sio.emit('serverMessage', 'Current Time: ' + str(datetime.datetime.now()))
+
+
 async def index(request):
     with open('index.html') as f:
         return web.Response(text=f.read(), content_type='text/html')
@@ -62,6 +71,17 @@ async def index(request):
 #
 #     if not authenticateUser:
 #         sio.disconnect(sid)
+
+
+@sio.on('message')
+async def print_message(sid, message):
+    # print("Socket ID: " , sid)
+    # print(message['profileID'])
+    # logger.info('MESSAGE IS: ' + message)
+    # print(app.logger())
+    # await a successful emit of our reversed message
+    # back to the client
+    await sio.emit('clientMessage', message['msg'])
 
 personDict = defaultdict(list)
 
@@ -92,5 +112,5 @@ app.router.add_get('/', index)
 
 # We kick off our server
 if __name__ == '__main__':
-    # sio.start_background_task(background_task)
+    sio.start_background_task(background_task)
     web.run_app(app, port=27017)
