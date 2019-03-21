@@ -52,6 +52,10 @@ sio = socketio.AsyncServer()
 app = web.Application()
 sio.attach(app)
 
+async def index(request):
+    with open('index.html') as f:
+        return web.Response(text=f.read(), content_type='text/html')
+
 # @sio.on('connect')
 # async def authenticateUser(sid, data):
 #     authenticationStatus = verifyUser(data['username'], data['token'])
@@ -84,6 +88,7 @@ async def populateDict(sid, profileid):
 #         await sio.sleep(10)
 #         await sio.emit('serverMessage', 'Current Time: ' + str(datetime.datetime.now()))
 
+app.router.add_get('/', index)
 
 # We kick off our server
 if __name__ == '__main__':
