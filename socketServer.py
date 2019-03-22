@@ -88,15 +88,23 @@ personDict = defaultdict(list)
 
 @sio.on('personData')
 async def pushNotification(sid, personData, personid):
-    for sid in personDict[personid]:
-        sio.enter_room(sid, 'chat_users')
+    room_name = str(personid) + '_room'
+    print('creating room: ' + room_name)
+    print('sending notification for person: {' + str(personid) + '} to ' + str(len(personDict[personid])) + ' sessions')
 
-    await sio.emit('profileready', json.dumps(personData), room='chat_users')
+    for sid in personDict[personid]:
+        sio.enter_room(sid, room_name)
+
+    await sio.emit('profileready', json.dumps(personData), room=room_name)
     del personDict[personid]
+
+    print('closing room: ' + room_name)
+    sio.close_room(room_name)
 
 
 @sio.on('searchperson')
 async def populateDict(sid, profileid):
+    print('session id: {' + sid + '} request for person having id: {' + profileid + '}')
     personDict[profileid].append(sid)
 
 
