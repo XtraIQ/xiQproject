@@ -81,7 +81,7 @@ async def print_message(sid, message):
     # print(app.logger())
     # await a successful emit of our reversed message
     # back to the client
-    await sio.emit('clientMessage', message['msg'])
+    await sio.emit('clientMessage', message['msg'], room=sid)
 
 personDict = defaultdict(list)
 
@@ -96,7 +96,7 @@ async def pushNotification(sid, data):
     for sid in personDict[data['personid']]:
         sio.enter_room(sid, room_name)
 
-    # await sio.emit('profileready', json.dumps(personData), room=room_name)
+    await sio.emit('profileready', data['personData'], room=room_name)
     del personDict[data['personid']]
 
     print('closing room: ' + room_name)
