@@ -86,7 +86,7 @@ async def print_message(sid, message):
 personDict = defaultdict(list)
 
 
-@sio.on('person_Data')
+@sio.on('person_data')
 async def pushNotification(sid, data):
     # room_name = str(data['personid']) + '_room'
     # print('Received person id: ' + str(data['personid']))
@@ -102,6 +102,7 @@ async def pushNotification(sid, data):
     # print('closing room: ' + room_name)
     # sio.close_room(room_name)
 
+    print()
     print('Response ID: ' + str(data['response_id']))
 
 
