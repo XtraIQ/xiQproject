@@ -104,13 +104,13 @@ async def pushNotification(sid, data):
 
     # print()
     # print('Response ID: ' + str(data['response_id']))
-    await sio.disconnect(sid)
+    sio.disconnect(sid)
 
 
 @sio.on('searchperson')
 async def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '}')
-    await personDict[data['personid']].append(sid)
+    personDict[data['personid']].append(sid)
 
 
 
