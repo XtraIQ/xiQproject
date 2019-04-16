@@ -100,17 +100,17 @@ async def pushNotification(sid, data):
     del personDict[data['personid']]
 
     print('closing room: ' + room_name)
-    sio.close_room(room_name)
+    await sio.close_room(room_name)
 
-    print()
-    print('Response ID: ' + str(data['response_id']))
-    sio.disconnect(sid)
+    # print()
+    # print('Response ID: ' + str(data['response_id']))
+    await sio.disconnect(sid)
 
 
 @sio.on('searchperson')
 async def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '}')
-    personDict[data['personid']].append(sid)
+    await personDict[data['personid']].append(sid)
 
 
 
