@@ -88,18 +88,18 @@ personDict = defaultdict(list)
 
 @sio.on('person_data')
 async def pushNotification(sid, data):
-    room_name = str(data['responseid']) + '_room'
+    room_name = str(data['personid']) + '_room'
     print('Response id: ' + str(data['responseid']))
     print('Person id: ' + str(data['personid']))
     print('creating room: ' + room_name)
-    print('sending notification for person: {' + str(data['responseid']) + '} to ' + str(len(personDict[data['responseid']])) + ' sessions')
+    print('sending notification for person: {' + str(data['personid']) + '} to ' + str(len(personDict[data['personid']])) + ' sessions')
 
-    for sid in personDict[data['responseid']]:
+    for sid in personDict[data['personid']]:
         sio.enter_room(sid, room_name)
 
 
     await sio.emit('profileready', data, room=room_name)
-    del personDict[data['responseid']]
+    del personDict[data['personid']]
 
     print('closing room: ' + room_name)
     await sio.close_room(room_name)
