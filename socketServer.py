@@ -89,7 +89,8 @@ personDict = defaultdict(list)
 @sio.on('person_data')
 async def pushNotification(sid, data):
     room_name = str(data['responseid']) + '_room'
-    print('Received person id: ' + str(data['responseid']))
+    print('Response id: ' + str(data['responseid']))
+    print('Person id: ' + str(data['personid']))
     print('creating room: ' + room_name)
     print('sending notification for person: {' + str(data['responseid']) + '} to ' + str(len(personDict[data['responseid']])) + ' sessions')
 
