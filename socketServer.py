@@ -1,3 +1,5 @@
+import sys, traceback
+
 from aiohttp import web
 import socketio
 import datetime
@@ -98,13 +100,18 @@ async def pushNotification(sid, data):
     #     print('sending notification for person: {' + str(data['personid']) + '} to ' + str(len(personDict[data['personid']])) + ' sessions')
     #     print("Current person session ids list: " + str(personDict[data['personid']]))
 
-    for x in personDict[data['personid']]:
-        print('x: ' + str(x))
-        sio.enter_room(x, room_name)
+
+    try:
+        for x in personDict[data['personid']]:
+            print('x: ' + str(x))
+            sio.enter_room(x, room_name)
 
 
-    await sio.emit('profileready', json.dumps(data), room=room_name)
-    del personDict[data['personid']]
+        await sio.emit('profileready', json.dumps(data), room=room_name)
+        del personDict[data['personid']]
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
     print('closing room: ' + room_name)
     await sio.close_room(room_name)
