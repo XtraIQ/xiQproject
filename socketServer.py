@@ -99,10 +99,11 @@ async def pushNotification(sid, data):
 
     print("Current person session ids list: " + str(personDict[data['personid']]))
 
-    for x in personDict[data['personid']]:
-        print('x: ' + str(x))
-        sio.enter_room(x, room_name)
-
+    for x, dt in personDict:
+        if str(x) == str(data['personid']):
+            for a in dt:
+                sio.enter_room(a, room_name)
+        
     await sio.emit('profileready', json.dumps(data), room=room_name)
     del personDict[data['personid']]
 
