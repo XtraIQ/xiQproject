@@ -102,7 +102,7 @@ async def pushNotification(sid, data):
     for x in personDict[data['personid']]:
         sio.enter_room(x, room_name)
 
-    await sio.emit('profileready', data, room=room_name)
+    await sio.emit('profileready', json.dumps(data), room=room_name)
     del personDict[data['personid']]
 
     print('closing room: ' + room_name)
