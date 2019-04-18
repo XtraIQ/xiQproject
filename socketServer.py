@@ -96,6 +96,11 @@ async def pushNotification(sid, data):
     print('Person id: ' + str(data['personid']))
     print('creating room: ' + room_name)
 
+    for x in personDict:
+        print(x)
+
+    print('PERSON ID: ' + str(data['personid']))
+
     # if personDict[data['personid']]:
     #     print('sending notification for person: {' + str(data['personid']) + '} to ' + str(len(personDict[data['personid']])) + ' sessions')
     #     print("Current person session ids list: " + str(personDict[data['personid']]))
