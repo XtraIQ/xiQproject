@@ -88,8 +88,8 @@ personDict = defaultdict(list)
 
 @sio.on('person_data')
 async def pushNotification(sid, data):
-    for ls in personDict:
-        print(ls)
+    for ls, dt in personDict:
+        print(dt)
 
     room_name = str(data['personid']) + '_room'
     print('Response id: ' + str(data['responseid']))
@@ -108,8 +108,6 @@ async def pushNotification(sid, data):
     print('closing room: ' + room_name)
     await sio.close_room(room_name)
 
-    while len(personDict[data['personid']]) > 0:
-        personDict[data['personid']].pop()
 
     # print()
     # print('Response ID: ' + str(data['response_id']))
