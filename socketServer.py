@@ -83,7 +83,7 @@ async def print_message(sid, message):
     # back to the client
     await sio.emit('clientMessage', message['msg'], room=sid)
 
-personDict = defaultdict(list)
+personDict = {}
 
 
 @sio.on('person_data')
@@ -99,11 +99,11 @@ async def pushNotification(sid, data):
 
     print("Current person session ids list: " + str(personDict[data['personid']]))
 
-    for x, dt in personDict:
-        if str(x) == str(data['personid']):
-            for a in dt:
-                sio.enter_room(a, room_name)
-        
+    for x in personDict[data['personid']]:
+        print('x: ' + str(x))
+        sio.enter_room(x, room_name)
+
+
     await sio.emit('profileready', json.dumps(data), room=room_name)
     del personDict[data['personid']]
 
@@ -119,7 +119,12 @@ async def pushNotification(sid, data):
 @sio.on('searchperson')
 async def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '}')
-    personDict[data['personid']].append(sid)
+
+    if not personDict[data['personid']]:
+        personDict[data['personid']] = [sid]
+    else:
+        personDict[data['personid']].append(sid)
+
 
 
 
