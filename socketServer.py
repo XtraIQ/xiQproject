@@ -107,7 +107,9 @@ async def pushNotification(sid, data):
 
     print('closing room: ' + room_name)
     await sio.close_room(room_name)
-    personDict.pop(data['personid'])
+
+    while len(personDict[data['personid']]) > 0:
+        personDict[data['personid']].pop()
 
     # print()
     # print('Response ID: ' + str(data['response_id']))
