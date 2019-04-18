@@ -107,7 +107,7 @@ async def pushNotification(sid, data):
 
     print('closing room: ' + room_name)
     await sio.close_room(room_name)
-    del personDict[data['personid']]
+    personDict.pop(data['personid'])
 
     # print()
     # print('Response ID: ' + str(data['response_id']))
