@@ -107,13 +107,14 @@ async def pushNotification(sid, data):
 
 
     try:
-        for x in personDict[data['personid']]:
-            print('x: ' + str(x))
-            sio.enter_room(x, room_name)
+        if str(data['personid']) in personDict:
+            for x in personDict[str(data['personid' ])]:
+                print('x: ' + str(x))
+                sio.enter_room(x, room_name)
 
 
-        await sio.emit('profileready', json.dumps(data), room=room_name)
-        del personDict[data['personid']]
+            await sio.emit('profileready', json.dumps(data), room=room_name)
+            del personDict[data['personid']]
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
@@ -131,10 +132,10 @@ async def pushNotification(sid, data):
 async def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '}')
 
-    if not personDict[data['personid']]:
-        personDict[data['personid']] = [sid]
+    if str(data['personid']) not in personDict:
+        personDict[str(data['personid'])] = [sid]
     else:
-        personDict[data['personid']].append(sid)
+        personDict[str(data['personid'])].append(sid)
 
 
 
