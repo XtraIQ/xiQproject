@@ -114,7 +114,7 @@ async def pushNotification(sid, data):
 
 
             await sio.emit('profileready', json.dumps(data), room=room_name)
-            del personDict[data['personid']]
+            del personDict[str(data['personid'])]
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
