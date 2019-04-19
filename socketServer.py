@@ -88,43 +88,43 @@ async def print_message(sid, message):
 personDict = {}
 
 
-# @sio.on('person_data')
-# async def pushNotification(sid, data):
-#
-#     room_name = str(data['personid']) + '_room'
-#     print('Response id: ' + str(data['responseid']))
-#     print('Person id: ' + str(data['personid']))
-#     print('creating room: ' + room_name)
-#
-#     for x in personDict:
-#         print(x)
-#
-#     print('PERSON ID: ' + str(data['personid']))
-#
-#     # if personDict[data['personid']]:
-#     #     print('sending notification for person: {' + str(data['personid']) + '} to ' + str(len(personDict[data['personid']])) + ' sessions')
-#     #     print("Current person session ids list: " + str(personDict[data['personid']]))
-#
-#
-#     try:
-#         for x in personDict[data['personid']]:
-#             print('x: ' + str(x))
-#             sio.enter_room(x, room_name)
-#
-#
-#         await sio.emit('profileready', json.dumps(data), room=room_name)
-#         del personDict[data['personid']]
-#     except Exception:
-#         exc_type, exc_value, exc_traceback = sys.exc_info()
-#         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-#
-#     print('closing room: ' + room_name)
-#     await sio.close_room(room_name)
-#
-#
-#     # print()
-#     # print('Response ID: ' + str(data['response_id']))
-#     await sio.disconnect(sid)
+@sio.on('person_data')
+async def pushNotification(sid, data):
+
+    room_name = str(data['personid']) + '_room'
+    print('Response id: ' + str(data['responseid']))
+    print('Person id: ' + str(data['personid']))
+    print('creating room: ' + room_name)
+
+    for x in personDict:
+        print(x)
+
+    print('PERSON ID: ' + str(data['personid']))
+
+    # if personDict[data['personid']]:
+    #     print('sending notification for person: {' + str(data['personid']) + '} to ' + str(len(personDict[data['personid']])) + ' sessions')
+    #     print("Current person session ids list: " + str(personDict[data['personid']]))
+
+
+    try:
+        for x in personDict[data['personid']]:
+            print('x: ' + str(x))
+            sio.enter_room(x, room_name)
+
+
+        await sio.emit('profileready', json.dumps(data), room=room_name)
+        del personDict[data['personid']]
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+
+    print('closing room: ' + room_name)
+    await sio.close_room(room_name)
+
+
+    # print()
+    # print('Response ID: ' + str(data['response_id']))
+    await sio.disconnect(sid)
 
 
 @sio.on('searchperson')
