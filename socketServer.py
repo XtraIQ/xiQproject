@@ -97,7 +97,7 @@ def disconnect(sid):
     print('disconnect ', sid)
 
 @sio.on('person_data')
-async def pushNotification(sid, data):
+def pushNotification(sid, data):
 
     room_name = str(data['personid']) + '_room'
     print('Response id: ' + str(data['responseid']))
@@ -121,20 +121,25 @@ async def pushNotification(sid, data):
                 sio.enter_room(x, room_name)
 
 
-            await sio.emit('profileready', json.dumps(data), room=room_name)
+            sio.emit('profileready', json.dumps(data), room=room_name)
             del personDict[str(data['personid'])]
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
     print('closing room: ' + room_name)
-    await sio.close_room(room_name)
+    sio.close_room(room_name)
 
 
     # print()
     # print('Response ID: ' + str(data['response_id']))
-    await sio.disconnect(sid)
+    sio.disconnect(sid)
 
+
+@sio.on('testmessage')
+def testFunction(sid, data):
+    print('Session ID: ' + str(sid))
+    print('Message: ' + str(data))
 
 @sio.on('searchperson')
 def populateDict(sid, data):
