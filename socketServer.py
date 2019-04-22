@@ -3,12 +3,14 @@ import sys, traceback
 from aiohttp import web
 import socketio
 import datetime
+import logging
 import json
 from collections import defaultdict
 
 import base64
 from urllib import parse as urlparse
 
+logger = logging.getLogger('socketServer')
 
 # def Verify(username = "", token = "", by_pass_activation = False):
 #     if len(token) >= 35:
@@ -89,11 +91,14 @@ personDict = {}
 
 @sio.on('connect')
 def connect(sid, environ):
+    logger.info('connect ' + str(sid))
     print('connect ', sid)
+    logger.info('connection environment: ' + str(environ))
     print('connection environment: ' + str())
 
 @sio.on('disconnect')
 def disconnect(sid):
+    logger.info('disconnect ' +  str(sid))
     print('disconnect ', sid)
 
 # @sio.on('person_data')
@@ -138,6 +143,8 @@ def disconnect(sid):
 
 @sio.on('testmessage')
 def testFunction(sid, data):
+    logger.info('Session ID: ' + str(sid))
+    logger.info('Message: ' + str(data))
     print('Session ID: ' + str(sid))
     print('Message: ' + str(data))
 
