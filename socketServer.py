@@ -87,6 +87,14 @@ async def print_message(sid, message):
 
 personDict = {}
 
+@sio.on('connect')
+def connect(sid, environ):
+    print('connect ', sid)
+    print('connection environment: ' + str())
+
+@sio.on('disconnect')
+def disconnect(sid):
+    print('disconnect ', sid)
 
 @sio.on('person_data')
 async def pushNotification(sid, data):
