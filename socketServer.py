@@ -103,7 +103,6 @@ def disconnect(sid):
 
 @sio.on('person_data')
 def pushNotification(sid, data):
-
     room_name = str(data['personid']) + '_room'
     print('Response id: ' + str(data['responseid']))
     print('Person id: ' + str(data['personid']))
@@ -127,14 +126,14 @@ def pushNotification(sid, data):
 
 
             sio.emit('profileready', json.dumps(data), room=room_name)
-            del personDict[str(data['personid'])]
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
+    del personDict[str(data['personid'])]
+
     print('closing room: ' + room_name)
     sio.close_room(room_name)
-
 
     # print()
     # print('Response ID: ' + str(data['response_id']))
