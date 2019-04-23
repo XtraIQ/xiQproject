@@ -77,15 +77,15 @@ async def index(request):
 #         sio.disconnect(sid)
 
 
-@sio.on('message')
-async def print_message(sid, message):
-    # print("Socket ID: " , sid)
-    # print(message['profileID'])
-    # logger.info('MESSAGE IS: ' + message)
-    # print(app.logger())
-    # await a successful emit of our reversed message
-    # back to the client
-    await sio.emit('clientMessage', message['msg'], room=sid)
+# @sio.on('message')
+# async def print_message(sid, message):
+#     # print("Socket ID: " , sid)
+#     # print(message['profileID'])
+#     # logger.info('MESSAGE IS: ' + message)
+#     # print(app.logger())
+#     # await a successful emit of our reversed message
+#     # back to the client
+#     await sio.emit('clientMessage', message['msg'], room=sid)
 
 personDict = {}
 
@@ -140,12 +140,12 @@ def pushNotification(sid, data):
     sio.disconnect(sid)
 
 
-@sio.on('testmessage')
-def testFunction(sid, data):
-    logger.info('Session ID: ' + str(sid))
-    logger.info('Message: ' + str(data))
-    print('Session ID: ' + str(sid))
-    print('Message: ' + str(data))
+# @sio.on('testmessage')
+# def testFunction(sid, data):
+#     logger.info('Session ID: ' + str(sid))
+#     logger.info('Message: ' + str(data))
+#     print('Session ID: ' + str(sid))
+#     print('Message: ' + str(data))
 
 @sio.on('searchperson')
 def populateDict(sid, data):
