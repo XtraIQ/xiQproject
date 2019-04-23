@@ -90,19 +90,19 @@ async def index(request):
 personDict = {}
 
 @sio.on('connect')
-def connect(sid, environ):
+async def connect(sid, environ):
     logger.info('connect ' + str(sid))
     print('connect ', sid)
     logger.info('connection environment: ' + str(environ))
     print('connection environment: ' + str())
 
 @sio.on('disconnect')
-def disconnect(sid):
+async def disconnect(sid):
     logger.info('disconnect ' +  str(sid))
     print('disconnect ', sid)
 
 @sio.on('person_data')
-def pushNotification(sid, data):
+async def pushNotification(sid, data):
     room_name = str(data['personid']) + '_room'
     print('Response id: ' + str(data['responseid']))
     print('Person id: ' + str(data['personid']))
@@ -122,10 +122,10 @@ def pushNotification(sid, data):
         if str(data['personid']) in personDict:
             for x in personDict[str(data['personid' ])]:
                 print('x: ' + str(x))
-                sio.enter_room(x, room_name)
+                await sio.enter_room(x, room_name)
 
 
-            sio.emit('profileready', json.dumps(data), room=room_name)
+            await sio.emit('profileready', json.dumps(data), room=room_name)
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
@@ -133,11 +133,11 @@ def pushNotification(sid, data):
     del personDict[str(data['personid'])]
 
     print('closing room: ' + room_name)
-    sio.close_room(room_name)
+    await sio.close_room(room_name)
 
     # print()
     # print('Response ID: ' + str(data['response_id']))
-    sio.disconnect(sid)
+    await sio.disconnect(sid)
 
 
 # @sio.on('testmessage')
@@ -148,7 +148,7 @@ def pushNotification(sid, data):
 #     print('Message: ' + str(data))
 
 @sio.on('searchperson')
-def populateDict(sid, data):
+async def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '}')
 
     if str(data['personid']) not in personDict:
