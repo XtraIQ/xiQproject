@@ -35,8 +35,8 @@ async def index(request):
 async def connect(sid, environ):
     logger.info('connect ' + str(sid))
     print('connect ', sid)
-    logger.info('connection environment: ' + str(environ))
-    print('connection environment: ' + str())
+    # logger.info('connection environment: ' + str(environ))
+    # print('connection environment: ' + str())
 
 @sio.on('disconnect')
 async def disconnect(sid):
@@ -46,10 +46,10 @@ async def disconnect(sid):
 @sio.on('person_data')
 async def pushNotification(sid, data):
     room_name = str(data['personid']) + '_room'
-    await print('CREATED ROOM [' + str(room_name) + ']')
+    # await print('CREATED ROOM [' + str(room_name) + ']')
     print('created room [' + str(room_name) + ']')
 
-    await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
+    # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
     print('person having id [' + str(data['personid']) + '] and response id [' + str(data['responseid']) + '] has been parsed')
 
     try:
@@ -58,16 +58,16 @@ async def pushNotification(sid, data):
                 sio.enter_room(x, room_name)
 
             await sio.emit('profileready', json.dumps(data), room=room_name)
-            await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
+            # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
             print('parsed data has been sent to the client')
 
             del personDict[str(data['personid'])]
 
             if str(data['personid']) in personDict:
-                await print('PERSON ID NOT DELETED FROM DICTIONARY')
+                # await print('PERSON ID NOT DELETED FROM DICTIONARY')
                 print('person id not deleted from dictionary')
             else:
-                await print('PERSON ID DELETED FROM DICTIONARY')
+                # await print('PERSON ID DELETED FROM DICTIONARY')
                 print('person id delted from dictionary')
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
