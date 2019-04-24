@@ -79,7 +79,7 @@ async def pushNotification(sid, data):
 
 @sio.on('searchperson')
 def populateDict(sid, data):
-    print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' + str(data['responseid']) + '}')
+    print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
 
     if str(data['personid']) not in personDict:
         personDict[str(data['personid'])] = [sid]
