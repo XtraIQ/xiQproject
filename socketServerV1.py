@@ -31,6 +31,22 @@ async def index(request):
         return web.Response(text=f.read(), content_type='text/html')
 
 
+
+
+@sio.on('message')
+async def print_message(sid, message):
+    # print("Socket ID: " , sid)
+    # print(message['profileID'])
+    # logger.info('MESSAGE IS: ' + message)
+    # print(app.logger())
+    # await a successful emit of our reversed message
+    # back to the client
+    await sio.emit('clientMessage', message['msg'], room=sid)
+
+
+
+
+
 @sio.on('connect')
 async def connect(sid, environ):
     logger.info('connect ' + str(sid))
@@ -80,6 +96,7 @@ async def pushNotification(sid, data):
 @sio.on('searchperson')
 def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('Person dict length: ' + str(len(personDict)))
 
     if str(data['personid']) not in personDict:
         personDict[str(data['personid'])] = [sid]
@@ -151,15 +168,7 @@ async def background_task():
 #         sio.disconnect(sid)
 
 
-# @sio.on('message')
-# async def print_message(sid, message):
-#     # print("Socket ID: " , sid)
-#     # print(message['profileID'])
-#     # logger.info('MESSAGE IS: ' + message)
-#     # print(app.logger())
-#     # await a successful emit of our reversed message
-#     # back to the client
-#     await sio.emit('clientMessage', message['msg'], room=sid)
+
 
 
 # @sio.on('testmessage')
