@@ -6,6 +6,7 @@ import socketio
 import datetime
 import logging
 import json
+import ssl
 
 
 logger = logging.getLogger('socketServer')
@@ -13,6 +14,10 @@ logger = logging.getLogger('socketServer')
 sio = socketio.AsyncServer()
 app = web.Application()
 sio.attach(app)
+
+sioS = socketio.AsyncServer()
+appS = web.Application()
+sioS.attach(appS)
 
 personDict = {}
 
@@ -104,19 +109,39 @@ def populateDict(sid, data):
         if str(sid) not in personDict[str(data['personid'])]:
             personDict[str(data['personid'])].append(sid)
 
+@sioS.on('searchperson')
+def populateDict(sid, data):
+    print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('Person dict length: ' + str(len(personDict)))
 
-def socket_server():
-    app.router.add_get('/', index)
+    if str(data['personid']) not in personDict:
+        personDict[str(data['personid'])] = [sid]
+    else:
+        if str(sid) not in personDict[str(data['personid'])]:
+            personDict[str(data['personid'])].append(sid)
+
+
+def http_socket_server():
+    # app.router.add_get('/', index)
     web.run_app(app, port=27017)
 
+
+
+def https_socket_server():
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.load_cert_chain('star_xiq_io.crt', 'xiq_io.key')
+
+    web.run_app(appS, port=27018, ssl_context=ssl_context)
 
 def start_socket():
     try:
         if is_process_running(__file__):
             print('SOCKET IS ALREADY RUNNING')
         else:
-            print('STARTING SOCKET SERVER')
-            socket_server()
+            # print('STARTING HTTP SOCKET SERVER')
+            # http_socket_server()
+            print('STARTING HTTPS SOCKET SERVER')
+            https_socket_server()
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         logger.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
