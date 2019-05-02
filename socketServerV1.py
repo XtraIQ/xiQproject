@@ -123,7 +123,7 @@ def populateDict(sid, data):
 
 def http_socket_server():
     # app.router.add_get('/', index)
-    web.run_app(app, port=27018)
+    web.run_app(app, port=27017)
 
 
 
@@ -138,10 +138,10 @@ def start_socket():
         if is_process_running(__file__):
             print('SOCKET IS ALREADY RUNNING')
         else:
-            print('STARTING HTTP SOCKET SERVER')
-            http_socket_server()
-            # print('STARTING HTTPS SOCKET SERVER')
-            # https_socket_server()
+            # print('STARTING HTTP SOCKET SERVER')
+            # http_socket_server()
+            print('STARTING HTTPS SOCKET SERVER')
+            https_socket_server()
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         logger.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
