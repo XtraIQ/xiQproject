@@ -139,10 +139,10 @@ def start_socket():
         if is_process_running(__file__):
             print('SOCKET IS ALREADY RUNNING')
         else:
-            # print('STARTING HTTP SOCKET SERVER')
-            # http_socket_server()
-            print('STARTING HTTPS SOCKET SERVER')
-            https_socket_server()
+            print('STARTING HTTP SOCKET SERVER')
+            http_socket_server()
+            # print('STARTING HTTPS SOCKET SERVER')
+            # https_socket_server()
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         logger.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
