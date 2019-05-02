@@ -128,7 +128,8 @@ def http_socket_server():
 
 
 def https_socket_server():
-    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    appS.router.add_get('/', index)
+    ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
     ssl_context.load_cert_chain('star_xiq_io.crt', 'xiq_io.key')
 
     web.run_app(appS, port=27018, ssl_context=ssl_context)
