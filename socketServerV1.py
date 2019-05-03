@@ -128,7 +128,7 @@ testDict = {
                                                     }
 
 @sioS.on('searchperson')
-def populateDict(sid, data):
+async def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
     print('Person dict length: ' + str(len(personDict)))
 
@@ -138,7 +138,7 @@ def populateDict(sid, data):
         if str(sid) not in personDict[str(data['personid'])]:
             personDict[str(data['personid'])].append(sid)
 
-    sioS.emit('profileready', json.dumps(testDict), room=sid)
+    await sioS.emit('profileready', json.dumps(testDict), room=sid)
 
 
 def http_socket_server():
