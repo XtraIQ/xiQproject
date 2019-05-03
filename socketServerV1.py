@@ -15,10 +15,6 @@ sio = socketio.AsyncServer()
 app = web.Application()
 sio.attach(app)
 
-sioS = socketio.AsyncServer()
-appS = web.Application()
-sioS.attach(appS)
-
 personDict = {}
 
 def is_process_running(file_name):
@@ -36,7 +32,7 @@ async def index(request):
         return web.Response(text=f.read(), content_type='text/html')
 
 
-
+#********************************************HTTP*******************************************
 
 @sio.on('message')
 async def print_message(sid, message):
@@ -47,18 +43,6 @@ async def print_message(sid, message):
     # await a successful emit of our reversed message
     # back to the client
     await sio.emit('clientMessage', message['msg'], room=sid)
-
-@sioS.on('message')
-async def print_message(sid, message):
-    # print("Socket ID: " , sid)
-    # print(message['profileID'])
-    # logger.info('MESSAGE IS: ' + message)
-    # print(app.logger())
-    # await a successful emit of our reversed message
-    # back to the client
-    print(message)
-    await sioS.emit('clientMessage', message['msg'], room=sid)
-
 
 
 @sio.on('connect')
@@ -72,6 +56,7 @@ async def connect(sid, environ):
 async def disconnect(sid):
     logger.info('disconnect ' +  str(sid))
     print('disconnect ', sid)
+
 
 @sio.on('person_data')
 async def pushNotification(sid, data):
@@ -107,6 +92,7 @@ async def pushNotification(sid, data):
     await sio.disconnect(sid)
 
 
+
 @sio.on('searchperson')
 def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
@@ -118,17 +104,74 @@ def populateDict(sid, data):
         if str(sid) not in personDict[str(data['personid'])]:
             personDict[str(data['personid'])].append(sid)
 
-testDict = {
-            'personid': 456235,
-            'image': 'abc.png',
-            'action': 'Executive Profile',
-            'name': 'UNIT TEST',
-            'type': 'profile',
-            'responseid': 875965
-                                                    }
+
+# **************************************HTTPS***************************************
+
+sioS = socketio.AsyncServer()
+appS = web.Application()
+sioS.attach(appS)
+
+@sioS.on('message')
+async def print_message(sid, message):
+    # print("Socket ID: " , sid)
+    # print(message['profileID'])
+    # logger.info('MESSAGE IS: ' + message)
+    # print(app.logger())
+    # await a successful emit of our reversed message
+    # back to the client
+    print(message)
+    await sioS.emit('clientMessage', message['msg'], room=sid)
+
+
+@sioS.on('connect')
+async def connect(sid, environ):
+    logger.info('connect ' + str(sid))
+    print('connect ', sid)
+    # logger.info('connection environment: ' + str(environ))
+    # print('connection environment: ' + str())
+
+@sioS.on('disconnect')
+async def disconnect(sid):
+    logger.info('disconnect ' +  str(sid))
+    print('disconnect ', sid)
+
+
+@sioS.on('person_data')
+async def pushNotification(sid, data):
+    room_name = str(data['personid']) + '_room'
+    # await print('CREATED ROOM [' + str(room_name) + ']')
+    print('created room [' + str(room_name) + ']')
+
+    # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
+    print('person having id [' + str(data['personid']) + '] and response id [' + str(data['responseid']) + '] has been parsed')
+
+    try:
+        if str(data['personid']) in personDict:
+            for x in personDict[str(data['personid' ])]:
+                sioS.enter_room(x, room_name)
+
+            await sioS.emit('profileready', json.dumps(data), room=room_name)
+            # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
+            print('parsed data has been sent to the client')
+
+            del personDict[str(data['personid'])]
+
+            if str(data['personid']) in personDict:
+                # await print('PERSON ID NOT DELETED FROM DICTIONARY')
+                print('person id not deleted from dictionary')
+            else:
+                # await print('PERSON ID DELETED FROM DICTIONARY')
+                print('person id delted from dictionary')
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+
+    await sioS.close_room(room_name)
+    await sioS.disconnect(sid)
+
 
 @sioS.on('searchperson')
-async def populateDict(sid, data):
+def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
     print('Person dict length: ' + str(len(personDict)))
 
@@ -138,7 +181,8 @@ async def populateDict(sid, data):
         if str(sid) not in personDict[str(data['personid'])]:
             personDict[str(data['personid'])].append(sid)
 
-    await sioS.emit('profileready', json.dumps(testDict), room=sid)
+    # await sioS.emit('profileready', json.dumps(testDict), room=sid)
+
 
 
 def http_socket_server():
