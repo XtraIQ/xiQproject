@@ -57,7 +57,7 @@ async def print_message(sid, message):
     # await a successful emit of our reversed message
     # back to the client
     print(message)
-    await sio.emit('clientMessage', message['msg'], room=sid)
+    await sioS.emit('clientMessage', message['msg'], room=sid)
 
 
 
