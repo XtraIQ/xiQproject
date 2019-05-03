@@ -118,6 +118,15 @@ def populateDict(sid, data):
         if str(sid) not in personDict[str(data['personid'])]:
             personDict[str(data['personid'])].append(sid)
 
+testDict = {
+            'personid': 456235,
+            'image': 'abc.png',
+            'action': 'Executive Profile',
+            'name': 'UNIT TEST',
+            'type': 'profile',
+            'responseid': 875965
+                                                    }
+
 @sioS.on('searchperson')
 def populateDict(sid, data):
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
@@ -128,6 +137,8 @@ def populateDict(sid, data):
     else:
         if str(sid) not in personDict[str(data['personid'])]:
             personDict[str(data['personid'])].append(sid)
+
+    sioS.emit('profileready', json.dumps(testDict), room=sid)
 
 
 def http_socket_server():
