@@ -67,12 +67,15 @@
 
         function sendMsg() {
             var msg = document.getElementById('msg').value;
+            console.log('DATA TO SERVER');
             console.log(msg);
             socket.emit("message", {'msg':msg});
         }
 
         socket.on("clientMessage", function(data) {
+            console.log('DATA FROM SERVER');
             console.log(data);
+
             document.getElementById('clientMsg').innerHTML = data;
         });
 
