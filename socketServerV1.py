@@ -138,6 +138,7 @@ async def disconnect(sid):
 
 @sioS.on('person_data')
 async def pushNotification(sid, data):
+    print('NEW PERSON PROFILE DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
     print('created room [' + str(room_name) + ']')
@@ -172,6 +173,7 @@ async def pushNotification(sid, data):
 
 @sioS.on('searchperson')
 def populateDict(sid, data):
+    print('NEW PERSON PROFILE REQUEST RECEIVED')
     print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
     print('Person dict length: ' + str(len(personDict)))
 
@@ -183,6 +185,58 @@ def populateDict(sid, data):
 
     # await sioS.emit('profileready', json.dumps(testDict), room=sid)
 
+
+
+
+
+
+
+@sioS.on('refresh_data')
+async def pushNotification(sid, data):
+    print('PERSON REFRESH DATA RECEIVED')
+    room_name = str(data['personid']) + '_room'
+    # await print('CREATED ROOM [' + str(room_name) + ']')
+    print('created room [' + str(room_name) + ']')
+
+    # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
+    print('person having id [' + str(data['personid']) + '] and response id [' + str(data['responseid']) + '] has been parsed')
+
+    try:
+        if str(data['personid']) in personDict:
+            for x in personDict[str(data['personid' ])]:
+                sioS.enter_room(x, room_name)
+
+            await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
+            # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
+            print('parsed data has been sent to the client')
+
+            del personDict[str(data['personid'])]
+
+            if str(data['personid']) in personDict:
+                # await print('PERSON ID NOT DELETED FROM DICTIONARY')
+                print('person id not deleted from dictionary')
+            else:
+                # await print('PERSON ID DELETED FROM DICTIONARY')
+                print('person id delted from dictionary')
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+
+    await sioS.close_room(room_name)
+    await sioS.disconnect(sid)
+
+
+@sioS.on('refreshperson')
+def populateDict(sid, data):
+    print('PERSON REFRESH REQUEST RECEIVED')
+    print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('Person dict length: ' + str(len(personDict)))
+
+    if str(data['personid']) not in personDict:
+        personDict[str(data['personid'])] = [sid]
+    else:
+        if str(sid) not in personDict[str(data['personid'])]:
+            personDict[str(data['personid'])].append(sid)
 
 
 def http_socket_server():
