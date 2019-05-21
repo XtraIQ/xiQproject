@@ -144,7 +144,7 @@ async def pushNotification(sid, data):
     print('created room [' + str(room_name) + ']')
 
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
-    print('person having id [' + str(data['personid']) + '] and response id [' + str(data['responseid']) + '] has been parsed')
+    print("person's profile having id [" + str(data['personid']) + "] has been parsed")
 
     try:
         if str(data['personid']) in personDict:
@@ -199,7 +199,7 @@ async def pushNotification(sid, data):
     print('created room [' + str(room_name) + ']')
 
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
-    print('person having id [' + str(data['personid']) + '] and response id [' + str(data['responseid']) + '] has been parsed')
+    print("Person's having id [" + str(data['personid']) + "] has been parsed")
 
     try:
         if str(data['personid']) in personDict:
