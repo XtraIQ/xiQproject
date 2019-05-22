@@ -229,7 +229,8 @@ async def pushNotification(sid, data):
 @sioS.on('refreshperson')
 def populateDict(sid, data):
     print('PERSON REFRESH REQUEST RECEIVED')
-    print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('DATA: ' + str(data))
+    # print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
     print('Person dict length: ' + str(len(personDict)))
 
     if str(data['personid']) not in personDict:
