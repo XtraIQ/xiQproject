@@ -203,8 +203,9 @@ async def pushNotification(sid, data):
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
     print("NEW_PERSON_DATA|    PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
 
-    person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
-    print('NEW_PERSON_DATA|    TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
+    if str(data['personid']) in person_parse_time_log:
+        person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+        print('NEW_PERSON_DATA|    TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
 
     try:
         if str(data['personid']) in personDict:
@@ -239,7 +240,7 @@ def populateDict(sid, data):
     print('SEARCHPERSON|    NEW PERSON PROFILE REQUEST RECEIVED')
     print('SEARCHPERSON|    SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
     print('SEARCHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
-    print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
+    # print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
 
     if str(data['personid']) not in person_parse_time_log:
         person_parse_time_log[str(data['personid'])] = {}
@@ -276,10 +277,11 @@ async def pushNotification(sid, data):
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
     print("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
 
-    person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
-    print('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
-        person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
-            'start_time']))
+    if str(data['personid']) in person_parse_time_log:
+        person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+        print('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
+            person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
+                'start_time']))
 
     try:
         if str(data['personid']) in personDict:
@@ -315,8 +317,7 @@ def populateDict(sid, data):
     # print('DATA: ' + str(data))
     print('REFRESHPERSON|    SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
     print('REFRESHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
-    print('REFRESHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(
-        len(personDict[str(data['personid'])])))
+    # print('REFRESHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
 
     if str(data['personid']) not in person_parse_time_log:
         person_parse_time_log[str(data['personid'])] = {}
