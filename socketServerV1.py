@@ -7,6 +7,7 @@ import datetime
 import logging
 import json
 import ssl
+import urllib.parse
 
 
 logger = logging.getLogger('socketServer')
@@ -16,6 +17,7 @@ app = web.Application()
 sio.attach(app)
 
 personDict = {}
+person_parse_time_log = {}
 
 def is_process_running(file_name):
     is_running = False
@@ -49,6 +51,21 @@ async def print_message(sid, message):
 async def connect(sid, environ):
     logger.info('connect ' + str(sid))
     print('connect ', sid)
+    if environ:
+        print('TYPE: ' + str(type(environ)))
+        print(environ)
+
+        print('ENVIRONMENT VARIABLE: ' + str(environ['QUERY_STRING']))
+        decoded_env_data = urllib.parse.unquote(environ['QUERY_STRING'])
+        print('DECODED DATA: ' + str(decoded_env_data))
+        env_list = str(decoded_env_data).split('&')
+        username = env_list[2][9:]
+        identifier = env_list[3][11:]
+        print('USERNAME: ' + str(username))
+        print('IDENTIFIER: ' + str(identifier))
+
+        # for a in env_list:
+        #     print(a)
     # logger.info('connection environment: ' + str(environ))
     # print('connection environment: ' + str())
 
@@ -125,44 +142,78 @@ async def print_message(sid, message):
 
 @sioS.on('connect')
 async def connect(sid, environ):
-    logger.info('connect ' + str(sid))
-    print('connect ', sid)
+    username = ''
+    identifier = ''
+
+    # logger.info('connect ' + str(sid))
+    print('CONNECT|    SID: ', sid)
+    print('CONNECT|    ENVIRONMENT VARIABLES: ' + str(environ))
+
+    decoded_env_data = urllib.parse.unquote(environ['QUERY_STRING'])
+    env_list = str(decoded_env_data).split('&')
+
+    for var in env_list:
+        if 'username' in str(var):
+            username = var[9:]
+            print('CONNECT|    USERNAME: ' + str(username))
+        if 'identifier' in str(var):
+            identifier = var[11:]
+            print('CONNECT|    IDENTIFIER: ' + str(identifier))
+
+    user_key = username + '|' + identifier
+    user_key_exist = 0
+
+    for key, val in personDict.items():
+        for k, v in val.items():
+            if k == user_key:
+                val[k] = sid
+                user_key_exist = 1
+                print('CONNECT|    USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
+
+    if user_key_exist == 0:
+        print('CONNECT|    USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
+
+
+
     # logger.info('connection environment: ' + str(environ))
     # print('connection environment: ' + str())
 
 @sioS.on('disconnect')
 async def disconnect(sid):
-    logger.info('disconnect ' +  str(sid))
-    print('disconnect ', sid)
+    # logger.info('disconnect ' +  str(sid))
+    print('DISCONNECT|    SID: ', sid)
 
 
 @sioS.on('person_data')
 async def pushNotification(sid, data):
-    print('NEW PERSON PROFILE DATA RECEIVED')
+    print('NEW_PERSON_DATA|    NEW PERSON PROFILE DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
-    print('created room [' + str(room_name) + ']')
+    print('NEW_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
 
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
-    print("person's profile having id [" + str(data['personid']) + "] has been parsed")
+    print("NEW_PERSON_DATA|    PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
+
+    person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+    print('NEW_PERSON_DATA|    TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
 
     try:
         if str(data['personid']) in personDict:
-            for x in personDict[str(data['personid' ])]:
-                sioS.enter_room(x, room_name)
+            for key, val in personDict[str(data['personid'])].items():
+                sioS.enter_room(val, room_name)
 
             await sioS.emit('profileready', json.dumps(data), room=room_name)
             # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
-            print('parsed data has been sent to the client')
+            print('NEW_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
 
             del personDict[str(data['personid'])]
 
             if str(data['personid']) in personDict:
                 # await print('PERSON ID NOT DELETED FROM DICTIONARY')
-                print('person id not deleted from dictionary')
+                print('NEW_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
             else:
                 # await print('PERSON ID DELETED FROM DICTIONARY')
-                print('person id delted from dictionary')
+                print('NEW_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
@@ -173,15 +224,24 @@ async def pushNotification(sid, data):
 
 @sioS.on('searchperson')
 def populateDict(sid, data):
-    print('NEW PERSON PROFILE REQUEST RECEIVED')
-    print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
-    print('Person dict length: ' + str(len(personDict)))
+    print('SEARCHPERSON|    NEW PERSON PROFILE REQUEST RECEIVED')
+    # print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('SEARCHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
+    print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
+
+    if str(data['personid']) not in person_parse_time_log:
+        person_parse_time_log[str(data['personid'])] = {}
+        person_parse_time_log[str(data['personid'])]['start_time'] = datetime.datetime.now()
+
+    user_key = str(data['username']) + '|' + str(data['identifier'])
 
     if str(data['personid']) not in personDict:
-        personDict[str(data['personid'])] = [sid]
+        # personDict[str(data['personid'])] = [sid]
+        personDict[str(data['personid'])] = {}
+        personDict[str(data['personid'])][user_key] = sid
     else:
-        if str(sid) not in personDict[str(data['personid'])]:
-            personDict[str(data['personid'])].append(sid)
+        if user_key not in personDict[str(data['personid'])]:
+            personDict[str(data['personid'])][user_key] = sid
 
     # await sioS.emit('profileready', json.dumps(testDict), room=sid)
 
@@ -193,31 +253,36 @@ def populateDict(sid, data):
 
 @sioS.on('refresh_data')
 async def pushNotification(sid, data):
-    print('PERSON REFRESH DATA RECEIVED')
+    print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
-    print('created room [' + str(room_name) + ']')
+    print('REFRESH_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
 
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
-    print("Person's having id [" + str(data['personid']) + "] has been parsed")
+    print("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
+
+    person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+    print('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
+        person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
+            'start_time']))
 
     try:
         if str(data['personid']) in personDict:
-            for x in personDict[str(data['personid' ])]:
-                sioS.enter_room(x, room_name)
+            for key, val in personDict[str(data['personid'])].items():
+                sioS.enter_room(val, room_name)
 
             await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
             # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
-            print('parsed data has been sent to the client')
+            print('REFRESH_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO THE CLIENTS')
 
             del personDict[str(data['personid'])]
 
             if str(data['personid']) in personDict:
                 # await print('PERSON ID NOT DELETED FROM DICTIONARY')
-                print('person id not deleted from dictionary')
+                print('REFRESH_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
             else:
                 # await print('PERSON ID DELETED FROM DICTIONARY')
-                print('person id delted from dictionary')
+                print('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
@@ -228,26 +293,37 @@ async def pushNotification(sid, data):
 
 @sioS.on('refreshperson')
 def populateDict(sid, data):
-    print('PERSON REFRESH REQUEST RECEIVED')
-    print('DATA: ' + str(data))
-    print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
-    print('Person dict length: ' + str(len(personDict)))
+    print('REFRESHPERSON|    PERSON REFRESH REQUEST RECEIVED')
+    # print('DATA: ' + str(data))
+    # print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('REFRESHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
+    print('REFRESHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(
+        len(personDict[str(data['personid'])])))
+
+    if str(data['personid']) not in person_parse_time_log:
+        person_parse_time_log[str(data['personid'])] = {}
+        person_parse_time_log[str(data['personid'])]['start_time'] = datetime.datetime.now()
+
+    user_key = str(data['username']) + '|' + str(data['identifier'])
 
     if str(data['personid']) not in personDict:
-        personDict[str(data['personid'])] = [sid]
+        # personDict[str(data['personid'])] = [sid]
+        personDict[str(data['personid'])] = {}
+        personDict[str(data['personid'])][user_key] = sid
     else:
         if str(sid) not in personDict[str(data['personid'])]:
-            personDict[str(data['personid'])].append(sid)
+            # personDict[str(data['personid'])].append(sid)
+            personDict[str(data['personid'])][user_key] = sid
 
 
 def http_socket_server():
-    # app.router.add_get('/', index)
+    app.router.add_get('/', index)
     web.run_app(app, port=27017)
 
 
 
 def https_socket_server():
-    appS.router.add_get('/', index)
+    # appS.router.add_get('/', index)
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     ssl_context.load_cert_chain('star_xiq_io.crt', 'xiq_io.key')
 
