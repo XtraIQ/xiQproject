@@ -142,6 +142,9 @@ async def print_message(sid, message):
 
 @sioS.on('connect')
 async def connect(sid, environ):
+    print()
+    print()
+    print()
     username = ''
     identifier = ''
 
@@ -180,12 +183,18 @@ async def connect(sid, environ):
 
 @sioS.on('disconnect')
 async def disconnect(sid):
+    print()
+    print()
+    print()
     # logger.info('disconnect ' +  str(sid))
     print('DISCONNECT|    SID: ', sid)
 
 
 @sioS.on('person_data')
 async def pushNotification(sid, data):
+    print()
+    print()
+    print()
     print('NEW_PERSON_DATA|    NEW PERSON PROFILE DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
@@ -224,8 +233,11 @@ async def pushNotification(sid, data):
 
 @sioS.on('searchperson')
 def populateDict(sid, data):
+    print()
+    print()
+    print()
     print('SEARCHPERSON|    NEW PERSON PROFILE REQUEST RECEIVED')
-    # print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('SEARCHPERSON|    SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
     print('SEARCHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
     print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
 
@@ -253,6 +265,9 @@ def populateDict(sid, data):
 
 @sioS.on('refresh_data')
 async def pushNotification(sid, data):
+    print()
+    print()
+    print()
     print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
@@ -293,9 +308,12 @@ async def pushNotification(sid, data):
 
 @sioS.on('refreshperson')
 def populateDict(sid, data):
+    print()
+    print()
+    print()
     print('REFRESHPERSON|    PERSON REFRESH REQUEST RECEIVED')
     # print('DATA: ' + str(data))
-    # print('session id: {' + str(sid) + '} request for person having id: {' + str(data['personid']) + '} and response id: {' +  '}')
+    print('REFRESHPERSON|    SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
     print('REFRESHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
     print('REFRESHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(
         len(personDict[str(data['personid'])])))
