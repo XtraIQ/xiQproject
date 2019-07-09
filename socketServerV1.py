@@ -211,6 +211,7 @@ async def pushNotification(sid, data):
         if str(data['personid']) in personDict:
             for key, val in personDict[str(data['personid'])].items():
                 sioS.enter_room(val, room_name)
+                print('NEW_PERSON_DATA|      SID: ' + str(val))
 
             await sioS.emit('profileready', json.dumps(data), room=room_name)
             # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
@@ -292,6 +293,7 @@ async def pushNotification(sid, data):
         if str(data['personid']) in personDict:
             for key, val in personDict[str(data['personid'])].items():
                 sioS.enter_room(val, room_name)
+                print('REFRESH_PERSON_DATA|    SID: ' + str(val))
 
             await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
             # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
