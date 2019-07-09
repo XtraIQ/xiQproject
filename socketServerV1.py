@@ -149,8 +149,8 @@ async def connect(sid, environ):
     identifier = ''
 
     # logger.info('connect ' + str(sid))
-    print('CONNECT|    SID: ', sid)
-    print('CONNECT|    ENVIRONMENT VARIABLES: ' + str(environ))
+    print('CONNECT|              SID: ', sid)
+    print('CONNECT|              ENVIRONMENT VARIABLES: ' + str(environ))
 
     decoded_env_data = urllib.parse.unquote(environ['QUERY_STRING'])
     env_list = str(decoded_env_data).split('&')
@@ -158,10 +158,10 @@ async def connect(sid, environ):
     for var in env_list:
         if 'username' in str(var):
             username = var[9:]
-            print('CONNECT|    USERNAME: ' + str(username))
+            print('CONNECT|              USERNAME: ' + str(username))
         if 'identifier' in str(var):
             identifier = var[11:]
-            print('CONNECT|    IDENTIFIER: ' + str(identifier))
+            print('CONNECT|              IDENTIFIER: ' + str(identifier))
 
     user_key = username + '|' + identifier
     user_key_exist = 0
@@ -171,10 +171,10 @@ async def connect(sid, environ):
             if k == user_key:
                 val[k] = sid
                 user_key_exist = 1
-                print('CONNECT|    USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
+                print('CONNECT|              USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
 
     if user_key_exist == 0:
-        print('CONNECT|    USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
+        print('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
 
 
 
@@ -187,7 +187,7 @@ async def disconnect(sid):
     print()
     print()
     # logger.info('disconnect ' +  str(sid))
-    print('DISCONNECT|    SID: ', sid)
+    print('DISCONNECT|           SID: ', sid)
 
 
 @sioS.on('person_data')
@@ -195,17 +195,17 @@ async def pushNotification(sid, data):
     print()
     print()
     print()
-    print('NEW_PERSON_DATA|    NEW PERSON PROFILE DATA RECEIVED')
+    print('NEW_PERSON_DATA|      NEW PERSON PROFILE DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
-    print('NEW_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
+    print('NEW_PERSON_DATA|      CREATED ROOM [' + str(room_name) + ']')
 
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
-    print("NEW_PERSON_DATA|    PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
+    print("NEW_PERSON_DATA|      PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
 
     if str(data['personid']) in person_parse_time_log:
         person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
-        print('NEW_PERSON_DATA|    TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
+        print('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
 
     try:
         if str(data['personid']) in personDict:
@@ -214,16 +214,18 @@ async def pushNotification(sid, data):
 
             await sioS.emit('profileready', json.dumps(data), room=room_name)
             # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
-            print('NEW_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
+            print('NEW_PERSON_DATA|      PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
 
             del personDict[str(data['personid'])]
 
             if str(data['personid']) in personDict:
                 # await print('PERSON ID NOT DELETED FROM DICTIONARY')
-                print('NEW_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
+                print('NEW_PERSON_DATA|      PERSON ID NOT DELETED FROM DICTIONARY')
             else:
                 # await print('PERSON ID DELETED FROM DICTIONARY')
-                print('NEW_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
+                print('NEW_PERSON_DATA|      PERSON ID DELETED FROM DICTIONARY')
+        else:
+            print('NEW_PERSON_DATA|      NEW REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
@@ -237,9 +239,9 @@ def populateDict(sid, data):
     print()
     print()
     print()
-    print('SEARCHPERSON|    NEW PERSON PROFILE REQUEST RECEIVED')
-    print('SEARCHPERSON|    SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
-    print('SEARCHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
+    print('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
+    print('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+    print('SEARCHPERSON|         PERSON DICT LENGTH: ' + str(len(personDict)))
     # print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
 
     if str(data['personid']) not in person_parse_time_log:
@@ -253,8 +255,11 @@ def populateDict(sid, data):
         personDict[str(data['personid'])] = {}
         personDict[str(data['personid'])][user_key] = sid
     else:
-        if user_key not in personDict[str(data['personid'])]:
-            personDict[str(data['personid'])][user_key] = sid
+        # if user_key not in personDict[str(data['personid'])]:
+        personDict[str(data['personid'])][user_key] = sid
+        # else:
+        #     personDict[str(data['personid'])][user_key] = sid
+
 
     # await sioS.emit('profileready', json.dumps(testDict), room=sid)
 
@@ -300,6 +305,8 @@ async def pushNotification(sid, data):
             else:
                 # await print('PERSON ID DELETED FROM DICTIONARY')
                 print('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
+        else:
+            print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
@@ -313,10 +320,10 @@ def populateDict(sid, data):
     print()
     print()
     print()
-    print('REFRESHPERSON|    PERSON REFRESH REQUEST RECEIVED')
+    print('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
     # print('DATA: ' + str(data))
-    print('REFRESHPERSON|    SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
-    print('REFRESHPERSON|    PERSON DICT LENGTH: ' + str(len(personDict)))
+    print('REFRESHPERSON|        SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+    print('REFRESHPERSON|        PERSON DICT LENGTH: ' + str(len(personDict)))
     # print('REFRESHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
 
     if str(data['personid']) not in person_parse_time_log:
@@ -330,9 +337,9 @@ def populateDict(sid, data):
         personDict[str(data['personid'])] = {}
         personDict[str(data['personid'])][user_key] = sid
     else:
-        if str(sid) not in personDict[str(data['personid'])]:
+        # if str(sid) not in personDict[str(data['personid'])]:
             # personDict[str(data['personid'])].append(sid)
-            personDict[str(data['personid'])][user_key] = sid
+        personDict[str(data['personid'])][user_key] = sid
 
 
 def http_socket_server():
