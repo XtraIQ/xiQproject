@@ -52,6 +52,8 @@ async def connect(sid, environ):
     logger.info('connect ' + str(sid))
     print('connect ', sid)
     if environ:
+        username = ''
+        identifier = ''
         print('TYPE: ' + str(type(environ)))
         print(environ)
 
@@ -59,8 +61,15 @@ async def connect(sid, environ):
         decoded_env_data = urllib.parse.unquote(environ['QUERY_STRING'])
         print('DECODED DATA: ' + str(decoded_env_data))
         env_list = str(decoded_env_data).split('&')
-        username = env_list[2][9:]
-        identifier = env_list[3][11:]
+        for env in env_list:
+            if 'username' in str(env):
+                username = str(env).split('username=')[1]
+                print('username -> ' + str(str(env).split('username=')[1]))
+            if 'identifier' in str(env):
+                identifier = str(env).split('identifier=')[1]
+                print('identifer -> ' + str(str(env).split('identifier=')[1]))
+        # username = env_list[2][9:]
+        # identifier = env_list[3][11:]
         print('USERNAME: ' + str(username))
         print('IDENTIFIER: ' + str(identifier))
 
