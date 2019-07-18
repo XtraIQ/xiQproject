@@ -10,7 +10,8 @@ import ssl
 import urllib.parse
 
 
-logger = logging.getLogger('socketServer')
+logging.basicConfig(filename='socketLog.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+
 
 sio = socketio.AsyncServer()
 app = web.Application()
@@ -49,7 +50,7 @@ async def print_message(sid, message):
 
 @sio.on('connect')
 async def connect(sid, environ):
-    logger.info('connect ' + str(sid))
+    logging.info('connect ' + str(sid))
     print('connect ', sid)
     if environ:
         username = ''
@@ -80,7 +81,7 @@ async def connect(sid, environ):
 
 @sio.on('disconnect')
 async def disconnect(sid):
-    logger.info('disconnect ' +  str(sid))
+    logging.info('disconnect ' +  str(sid))
     print('disconnect ', sid)
 
 
@@ -158,6 +159,8 @@ async def connect(sid, environ):
     identifier = ''
 
     # logger.info('connect ' + str(sid))
+    logging.info('CONNECT|              SID: ', sid)
+    logging.info('CONNECT|              ENVIRONMENT VARIABLES: ' + str(environ))
     print('CONNECT|              SID: ', sid)
     print('CONNECT|              ENVIRONMENT VARIABLES: ' + str(environ))
 
@@ -167,9 +170,11 @@ async def connect(sid, environ):
     for var in env_list:
         if 'username' in str(var):
             username = var[9:]
+            logging.info('CONNECT|              USERNAME: ' + str(username))
             print('CONNECT|              USERNAME: ' + str(username))
         if 'identifier' in str(var):
             identifier = var[11:]
+            logging.info('CONNECT|              IDENTIFIER: ' + str(identifier))
             print('CONNECT|              IDENTIFIER: ' + str(identifier))
 
     user_key = username + '|' + identifier
@@ -180,9 +185,11 @@ async def connect(sid, environ):
             if k == user_key:
                 val[k] = sid
                 user_key_exist = 1
+                logging.info('CONNECT|              USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
                 print('CONNECT|              USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
 
     if user_key_exist == 0:
+        logging.info('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
         print('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
 
 
@@ -196,6 +203,7 @@ async def disconnect(sid):
     print()
     print()
     # logger.info('disconnect ' +  str(sid))
+    logging.info('DISCONNECT|           SID: ', sid)
     print('DISCONNECT|           SID: ', sid)
 
 
@@ -204,40 +212,50 @@ async def pushNotification(sid, data):
     print()
     print()
     print()
+    logging.info('NEW_PERSON_DATA|      NEW PERSON PROFILE DATA RECEIVED')
     print('NEW_PERSON_DATA|      NEW PERSON PROFILE DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
+    logging.info('NEW_PERSON_DATA|      CREATED ROOM [' + str(room_name) + ']')
     print('NEW_PERSON_DATA|      CREATED ROOM [' + str(room_name) + ']')
 
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
+    logging.info("NEW_PERSON_DATA|      PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
     print("NEW_PERSON_DATA|      PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
 
     if str(data['personid']) in person_parse_time_log:
         person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+        logging.info('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
         print('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
 
     try:
         if str(data['personid']) in personDict:
             for key, val in personDict[str(data['personid'])].items():
                 sioS.enter_room(val, room_name)
+                logging.info('NEW_PERSON_DATA|      SID: ' + str(val))
                 print('NEW_PERSON_DATA|      SID: ' + str(val))
 
             await sioS.emit('profileready', json.dumps(data), room=room_name)
             # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
+            logging.info('NEW_PERSON_DATA|      PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
             print('NEW_PERSON_DATA|      PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
 
             del personDict[str(data['personid'])]
 
             if str(data['personid']) in personDict:
                 # await print('PERSON ID NOT DELETED FROM DICTIONARY')
+                logging.info('NEW_PERSON_DATA|      PERSON ID NOT DELETED FROM DICTIONARY')
                 print('NEW_PERSON_DATA|      PERSON ID NOT DELETED FROM DICTIONARY')
             else:
                 # await print('PERSON ID DELETED FROM DICTIONARY')
+                logging.info('NEW_PERSON_DATA|      PERSON ID DELETED FROM DICTIONARY')
                 print('NEW_PERSON_DATA|      PERSON ID DELETED FROM DICTIONARY')
         else:
+            logging.info('NEW_PERSON_DATA|      NEW REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
             print('NEW_PERSON_DATA|      NEW REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
+        logging.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
     await sioS.close_room(room_name)
@@ -249,6 +267,10 @@ def populateDict(sid, data):
     print()
     print()
     print()
+    logging.info('SEARCHPERSON|         DATA: ' + str(data))
+    logging.info('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
+    logging.info('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+    logging.info('SEARCHPERSON|         PERSON DICT LENGTH: ' + str(len(personDict)))
     print('SEARCHPERSON|         DATA: ' + str(data))
     print('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
     print('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
@@ -285,16 +307,22 @@ async def pushNotification(sid, data):
     print()
     print()
     print()
+    logging.info('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
     print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
     room_name = str(data['personid']) + '_room'
     # await print('CREATED ROOM [' + str(room_name) + ']')
+    logging.info('REFRESH_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
     print('REFRESH_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
 
     # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
+    logging.info("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
     print("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
 
     if str(data['personid']) in person_parse_time_log:
         person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+        logging.info('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
+            person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
+                'start_time']))
         print('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
             person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
                 'start_time']))
@@ -303,24 +331,30 @@ async def pushNotification(sid, data):
         if str(data['personid']) in personDict:
             for key, val in personDict[str(data['personid'])].items():
                 sioS.enter_room(val, room_name)
+                logging.info('REFRESH_PERSON_DATA|    SID: ' + str(val))
                 print('REFRESH_PERSON_DATA|    SID: ' + str(val))
 
             await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
             # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
+            logging.info('REFRESH_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO THE CLIENTS')
             print('REFRESH_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO THE CLIENTS')
 
             del personDict[str(data['personid'])]
 
             if str(data['personid']) in personDict:
                 # await print('PERSON ID NOT DELETED FROM DICTIONARY')
+                logging.info('REFRESH_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
                 print('REFRESH_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
             else:
                 # await print('PERSON ID DELETED FROM DICTIONARY')
+                logging.info('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
                 print('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
         else:
+            logging.info('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
             print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
+        logging.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
         print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
     await sioS.close_room(room_name)
@@ -332,6 +366,10 @@ def populateDict(sid, data):
     print()
     print()
     print()
+    logging.info('REFRESHPERSON|        DATA: ' + str(data))
+    logging.info('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
+    logging.info('REFRESHPERSON|        SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+    logging.info('REFRESHPERSON|        PERSON DICT LENGTH: ' + str(len(personDict)))
     print('REFRESHPERSON|        DATA: ' + str(data))
     print('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
     # print('DATA: ' + str(data))
@@ -371,15 +409,17 @@ def https_socket_server():
 def start_socket():
     try:
         if is_process_running(__file__):
+            logging.info('SOCKET IS ALREADY RUNNING')
             print('SOCKET IS ALREADY RUNNING')
         else:
             # print('STARTING HTTP SOCKET SERVER')
             # http_socket_server()
+            logging.info('STARTING HTTPS SOCKET SERVER')
             print('STARTING HTTPS SOCKET SERVER')
             https_socket_server()
     except:
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        logger.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+        logging.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
 
 
 start_socket()
