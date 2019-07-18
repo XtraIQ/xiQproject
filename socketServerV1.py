@@ -10,7 +10,7 @@ import ssl
 import urllib.parse
 
 
-logging.basicConfig(filename='socketLog.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='socketLog.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
 sio = socketio.AsyncServer()
