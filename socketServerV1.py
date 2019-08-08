@@ -159,9 +159,9 @@ async def connect(sid, environ):
     identifier = ''
 
     # logger.info('connect ' + str(sid))
-    logging.info('CONNECT|              SID: ', sid)
+    logging.info('CONNECT|              SID: ', str(sid))
     logging.info('CONNECT|              ENVIRONMENT VARIABLES: ' + str(environ))
-    print('CONNECT|              SID: ', sid)
+    print('CONNECT|              SID: ', str(sid))
     print('CONNECT|              ENVIRONMENT VARIABLES: ' + str(environ))
 
     decoded_env_data = urllib.parse.unquote(environ['QUERY_STRING'])
@@ -203,8 +203,8 @@ async def disconnect(sid):
     print()
     print()
     # logger.info('disconnect ' +  str(sid))
-    logging.info('DISCONNECT|           SID: ', sid)
-    print('DISCONNECT|           SID: ', sid)
+    logging.info('DISCONNECT|           SID: ', str(sid))
+    print('DISCONNECT|           SID: ', str(sid))
 
 
 @sioS.on('person_data')
