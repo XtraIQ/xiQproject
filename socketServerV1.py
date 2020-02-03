@@ -20,6 +20,12 @@ sio.attach(app)
 personDict = {}
 person_parse_time_log = {}
 
+# NEW VARIABLES
+# VARIABLES
+user_information_object = {}
+person_information_object = {}
+sid_information_object = {}
+
 def is_process_running(file_name):
     is_running = False
     count = 0
@@ -152,20 +158,18 @@ async def print_message(sid, message):
 
 @sioS.on('connect')
 async def connect(sid, environ):
+    logging.info('STAGING-CONNECT|              SID: ' + str(sid))
     print()
     print()
     print()
     username = ''
     identifier = ''
-
-    # logger.info('connect ' + str(sid))
-    logging.info('CONNECT|              SID: ' + str(sid))
-    logging.info('CONNECT|              ENVIRONMENT VARIABLES: ' + str(environ))
-    print('CONNECT|              SID: ' + str(sid))
-    print('CONNECT|              ENVIRONMENT VARIABLES: ' + str(environ))
+    environment = ''
 
     decoded_env_data = urllib.parse.unquote(environ['QUERY_STRING'])
     env_list = str(decoded_env_data).split('&')
+    logging.info('STAGING-CONNECT|              ENVIRONMENT VARIABLE: ' + str(environ['QUERY_STRING']))
+    logging.info('STAGING-CONNECT|              DECODED DATA: ' + str(decoded_env_data))
 
     for var in env_list:
         if 'username' in str(var):
@@ -176,21 +180,46 @@ async def connect(sid, environ):
             identifier = var[11:]
             logging.info('CONNECT|              IDENTIFIER: ' + str(identifier))
             print('CONNECT|              IDENTIFIER: ' + str(identifier))
+        if 'environment' in str(var):
+            environment = var[12:]
+            logging.info('CONNECT|              ENVIRONMENT: ' + str(environment))
+            print('CONNECT|              ENVIRONMENT: ' + str(environment))
 
-    user_key = username + '|' + identifier
-    user_key_exist = 0
+    if environment == 'STAGING':
+        user_identifier_key = username + '|' + identifier
+        logging.info('STAGING-CONNECT|              USERNAME: ' + str(username) + ' IDENTIFIER: ' + str(identifier))
+        logging.info('STAGING-CONNECT|              USER IDENTIFIER KEY: ' + str(user_identifier_key))
 
-    for key, val in personDict.items():
-        for k, v in val.items():
-            if k == user_key:
-                val[k] = sid
-                user_key_exist = 1
-                logging.info('CONNECT|              USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
-                print('CONNECT|              USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
+        if user_identifier_key in user_information_object:
+            logging.info('STAGING-CONNECT|              USER ALREADY EXISTED IN USER DICTIONARY, UPDATING SID')
+            user_information_object[user_identifier_key]['sid'] = sid
+        else:
+            logging.info('STAGING-CONNECT|              USER NOT FOUND IN USER DICTIONARY, CREATING USER OBJECT')
+            user_information_object[user_identifier_key] = {}
+            user_information_object[user_identifier_key]['sid'] = sid
+            user_information_object[user_identifier_key]['person'] = ''
 
-    if user_key_exist == 0:
-        logging.info('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
-        print('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
+        if 'sid_' + str(sid) not in sid_information_object:
+            logging.info('STAGING-CONNECT|              SID DOES NOT EXIST IN SID DICTIONARY')
+        else:
+            logging.info('STAGING-CONNECT|              SID ALREADY EXIST IN SID DICTIONARY <<<>>>SID: ' + str(sid) + ' USER: ' + str(
+                    user_identifier_key))
+        sid_information_object['sid_' + str(sid)] = user_identifier_key
+    else:
+        user_key = username + '|' + identifier
+        user_key_exist = 0
+
+        for key, val in personDict.items():
+            for k, v in val.items():
+                if k == user_key:
+                    val[k] = sid
+                    user_key_exist = 1
+                    logging.info('CONNECT|              USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
+                    print('CONNECT|              USER ALREADY EXIST IN PERSON DICT - ' + str(user_key))
+
+        if user_key_exist == 0:
+            logging.info('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
+            print('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
 
 
 
@@ -199,102 +228,160 @@ async def connect(sid, environ):
 
 @sioS.on('disconnect')
 async def disconnect(sid):
-    print()
-    print()
-    print()
-    # logger.info('disconnect ' +  str(sid))
-    logging.info('DISCONNECT|           SID: ' + str(sid))
-    print('DISCONNECT|           SID: ' + str(sid))
+    logging.info('STAGING-DISCONNECT|           SID: ' + str(sid))
+
+    if 'sid_' + str(sid) in sid_information_object:
+        if user_information_object[sid_information_object['sid_' + str(sid)]]['sid'] == sid:
+            del user_information_object[sid_information_object['sid_' + str(sid)]]
+            logging.info('STAGING-DISCONNECT|           USER HAS SAME CONNECT AND DISCONNECT SID')
+        else:
+            logging.info('STAGING-DISCONNECT|           USER CONNECT SID DOES NOT MATCH WITH DISCONNECT SID <<<>>>DISCONNECT SID: ' + str(
+                    sid) + ' CONNECT SID: ' + str(
+                    user_information_object[sid_information_object['sid_' + str(sid)]]) + ' CONNECT USER: ' + str(
+                    sid_information_object['sid_' + str(sid)]))
+
+        del sid_information_object[sid]
+        logging.info('STAGING-DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(
+            sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object['sid_' + str(sid)]]))
+    else:
+        logging.info('STAGING-DISCONNECT|           NO SID TO DISCONNECT <<<>>>SID: ' + str(sid))
 
 
 @sioS.on('person_data')
 async def pushNotification(sid, data):
-    print()
-    print()
-    print()
-    logging.info('NEW_PERSON_DATA|      NEW PERSON PROFILE DATA RECEIVED')
-    print('NEW_PERSON_DATA|      NEW PERSON PROFILE DATA RECEIVED')
-    room_name = str(data['personid']) + '_room'
-    # await print('CREATED ROOM [' + str(room_name) + ']')
-    logging.info('NEW_PERSON_DATA|      CREATED ROOM [' + str(room_name) + ']')
-    print('NEW_PERSON_DATA|      CREATED ROOM [' + str(room_name) + ']')
+    environment = 'PROD'
+    if 'environment' in data:
+        if data['environment'] == 'STAGING':
+            environment = 'STAGING'
 
-    # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
-    logging.info("NEW_PERSON_DATA|      PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
-    print("NEW_PERSON_DATA|      PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
+    if environment == 'STAGING':
+        logging.info('STAGING-NEW_PERSON_DATA|      SID: ' + str(sid))
+        logging.info('STAGING-NEW_PERSON_DATA|      TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
+            datetime.datetime.now() - person_information_object[data['personid']]['start_time']))
 
-    if str(data['personid']) in person_parse_time_log:
-        person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
-        logging.info('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
-        print('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
+        room_name = str(data['personid']) + '_room'
+        for user in person_information_object[data['personid']]['users']:
+            sioS.enter_room(user, room_name)
 
-    try:
-        if str(data['personid']) in personDict:
-            for key, val in personDict[str(data['personid'])].items():
-                sioS.enter_room(val, room_name)
-                logging.info('NEW_PERSON_DATA|      SID: ' + str(val))
-                print('NEW_PERSON_DATA|      SID: ' + str(val))
+        await sioS.emit('profileready', json.dumps(data), room=room_name)
+        logging.info('STAGING-NEW_PERSON_DATA|      EVENT "profileready" EMITTED TO ROOM "' + str(room_name) + '"  ' + str(
+            person_information_object[data['personid']]['users']))
 
-            await sioS.emit('profileready', json.dumps(data), room=room_name)
-            # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
-            logging.info('NEW_PERSON_DATA|      PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
-            print('NEW_PERSON_DATA|      PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
+        del person_information_object[data['personid']]
+        logging.info('STAGING-NEW_PERSON_DATA|      PERSON DELETED FROM PERSON DICTIONARY')
+    else:
+        print()
+        print()
+        print()
+        logging.info('NEW_PERSON_DATA|      NEW PERSON PROFILE DATA RECEIVED')
+        print('NEW_PERSON_DATA|      NEW PERSON PROFILE DATA RECEIVED')
+        room_name = str(data['personid']) + '_room'
+        # await print('CREATED ROOM [' + str(room_name) + ']')
+        logging.info('NEW_PERSON_DATA|      CREATED ROOM [' + str(room_name) + ']')
+        print('NEW_PERSON_DATA|      CREATED ROOM [' + str(room_name) + ']')
 
-            del personDict[str(data['personid'])]
+        # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
+        logging.info("NEW_PERSON_DATA|      PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
+        print("NEW_PERSON_DATA|      PERSON'S PROFILE HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
 
+        if str(data['personid']) in person_parse_time_log:
+            person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+            logging.info('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
+            print('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
+
+        try:
             if str(data['personid']) in personDict:
-                # await print('PERSON ID NOT DELETED FROM DICTIONARY')
-                logging.info('NEW_PERSON_DATA|      PERSON ID NOT DELETED FROM DICTIONARY')
-                print('NEW_PERSON_DATA|      PERSON ID NOT DELETED FROM DICTIONARY')
-            else:
-                # await print('PERSON ID DELETED FROM DICTIONARY')
-                logging.info('NEW_PERSON_DATA|      PERSON ID DELETED FROM DICTIONARY')
-                print('NEW_PERSON_DATA|      PERSON ID DELETED FROM DICTIONARY')
-        else:
-            logging.info('NEW_PERSON_DATA|      NEW REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
-            print('NEW_PERSON_DATA|      NEW REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        logging.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-        print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+                for key, val in personDict[str(data['personid'])].items():
+                    sioS.enter_room(val, room_name)
+                    logging.info('NEW_PERSON_DATA|      SID: ' + str(val))
+                    print('NEW_PERSON_DATA|      SID: ' + str(val))
 
-    await sioS.close_room(room_name)
-    await sioS.disconnect(sid)
+                await sioS.emit('profileready', json.dumps(data), room=room_name)
+                # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
+                logging.info('NEW_PERSON_DATA|      PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
+                print('NEW_PERSON_DATA|      PARSED DATA HAS BEEN SENT TO REGISTERED SIDS')
+
+                del personDict[str(data['personid'])]
+
+                if str(data['personid']) in personDict:
+                    # await print('PERSON ID NOT DELETED FROM DICTIONARY')
+                    logging.info('NEW_PERSON_DATA|      PERSON ID NOT DELETED FROM DICTIONARY')
+                    print('NEW_PERSON_DATA|      PERSON ID NOT DELETED FROM DICTIONARY')
+                else:
+                    # await print('PERSON ID DELETED FROM DICTIONARY')
+                    logging.info('NEW_PERSON_DATA|      PERSON ID DELETED FROM DICTIONARY')
+                    print('NEW_PERSON_DATA|      PERSON ID DELETED FROM DICTIONARY')
+            else:
+                logging.info('NEW_PERSON_DATA|      NEW REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
+                print('NEW_PERSON_DATA|      NEW REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
+        except Exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            logging.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+            print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+
+        await sioS.close_room(room_name)
+        await sioS.disconnect(sid)
 
 
 @sioS.on('searchperson')
 def populateDict(sid, data):
-    print()
-    print()
-    print()
-    logging.info('SEARCHPERSON|         DATA: ' + str(data))
-    logging.info('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
-    logging.info('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
-    logging.info('SEARCHPERSON|         PERSON DICT LENGTH: ' + str(len(personDict)))
-    print('SEARCHPERSON|         DATA: ' + str(data))
-    print('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
-    print('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
-    print('SEARCHPERSON|         PERSON DICT LENGTH: ' + str(len(personDict)))
-    # print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
+    environment = 'PROD'
+    if 'environment' in data:
+        if data['environment'] == 'STAGING':
+            environment = 'STAGING'
 
-    if str(data['personid']) not in person_parse_time_log:
-        person_parse_time_log[str(data['personid'])] = {}
-        person_parse_time_log[str(data['personid'])]['start_time'] = datetime.datetime.now()
+    if environment == 'STAGING':
+        logging.info('STAGING-SEARCHPERSON|         SID: ' + str(sid))
 
-    user_key = str(data['username']) + '|' + str(data['identifier'])
+        user_identifier_key = str(data['username']) + '|' + str(data['identifier'])
+        if data['personid'] in person_information_object:
+            logging.info('STAGING-SEARCHPERSON|         UPDATING PERSON OBJECT ALREADY EXIST IN PERSON DICTIONARY')
+            person_information_object[data['personid']]['users'].append(user_identifier_key)
+        else:
+            logging.info('STAGING-SEARCHPERSON|         CREATING NEW PERSON OBJECT IN PERSON DICTIONARY')
+            person_information_object[data['personid']] = {}
+            person_information_object[data['personid']]['users'] = [user_identifier_key]
+            person_information_object[data['personid']]['start_time'] = datetime.datetime.now()
+            person_information_object[data['personid']]['type'] = 'SEARCH'
 
-    if str(data['personid']) not in personDict:
-        # personDict[str(data['personid'])] = [sid]
-        personDict[str(data['personid'])] = {}
-        personDict[str(data['personid'])][user_key] = sid
+        if user_identifier_key in user_information_object:
+            logging.info('STAGING-SEARCHPERSON|         UPDATING PERSON IN USER DICTIONARY')
+            user_information_object[user_identifier_key]['person'] = data['personid']
+        else:
+            logging.info('STAGING-SEARCHPERSON|         USER "' + str(
+                user_identifier_key) + '" OBJECT NOT CREATED IN USER DICTIONARY <<<>>>')
     else:
-        # if user_key not in personDict[str(data['personid'])]:
-        personDict[str(data['personid'])][user_key] = sid
-        # else:
-        #     personDict[str(data['personid'])][user_key] = sid
+        print()
+        print()
+        print()
+        logging.info('SEARCHPERSON|         DATA: ' + str(data))
+        logging.info('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
+        logging.info('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+        logging.info('SEARCHPERSON|         PERSON DICT LENGTH: ' + str(len(personDict)))
+        print('SEARCHPERSON|         DATA: ' + str(data))
+        print('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
+        print('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+        print('SEARCHPERSON|         PERSON DICT LENGTH: ' + str(len(personDict)))
+        # print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
+
+        if str(data['personid']) not in person_parse_time_log:
+            person_parse_time_log[str(data['personid'])] = {}
+            person_parse_time_log[str(data['personid'])]['start_time'] = datetime.datetime.now()
+
+        user_key = str(data['username']) + '|' + str(data['identifier'])
+
+        if str(data['personid']) not in personDict:
+            # personDict[str(data['personid'])] = [sid]
+            personDict[str(data['personid'])] = {}
+            personDict[str(data['personid'])][user_key] = sid
+        else:
+            # if user_key not in personDict[str(data['personid'])]:
+            personDict[str(data['personid'])][user_key] = sid
+            # else:
+            #     personDict[str(data['personid'])][user_key] = sid
 
 
-    # await sioS.emit('profileready', json.dumps(testDict), room=sid)
+        # await sioS.emit('profileready', json.dumps(testDict), room=sid)
 
 
 
@@ -304,93 +391,140 @@ def populateDict(sid, data):
 
 @sioS.on('refresh_data')
 async def pushNotification(sid, data):
-    print()
-    print()
-    print()
-    logging.info('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
-    print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
-    room_name = str(data['personid']) + '_room'
-    # await print('CREATED ROOM [' + str(room_name) + ']')
-    logging.info('REFRESH_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
-    print('REFRESH_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
+    environment = 'PROD'
+    if 'environment' in data:
+        if data['environment'] == 'STAGING':
+            environment = 'STAGING'
 
-    # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
-    logging.info("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
-    print("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
+    if environment == 'STAGING':
+        logging.info('STAGING-REFRESH_PERSON_DATA|  SID: ' + str(sid))
+        logging.info('STAGING-REFRESH_PERSON_DATA|  TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
+            datetime.datetime.now() - person_information_object[data['personid']]['start_time']))
 
-    if str(data['personid']) in person_parse_time_log:
-        person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
-        logging.info('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
-            person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
-                'start_time']))
-        print('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
-            person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
-                'start_time']))
+        room_name = str(data['personid']) + '_room'
+        for user in person_information_object[data['personid']]['users']:
+            sioS.enter_room(user, room_name)
 
-    try:
-        if str(data['personid']) in personDict:
-            for key, val in personDict[str(data['personid'])].items():
-                sioS.enter_room(val, room_name)
-                logging.info('REFRESH_PERSON_DATA|    SID: ' + str(val))
-                print('REFRESH_PERSON_DATA|    SID: ' + str(val))
+        await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
+        logging.info('STAGING-REFRESH_PERSON_DATA|  EVENT "refreshprofileready" EMITTED TO ROOM "' + str(room_name) + '"  ' + str(
+                person_information_object[data['personid']]['users']))
 
-            await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
-            # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
-            logging.info('REFRESH_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO THE CLIENTS')
-            print('REFRESH_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO THE CLIENTS')
+        del person_information_object[data['personid']]
+        logging.info('STAGING-REFRESH_PERSON_DATA|  PERSON DELETED FROM PERSON DICTIONARY')
+    else:
+        print()
+        print()
+        print()
+        logging.info('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
+        print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECEIVED')
+        room_name = str(data['personid']) + '_room'
+        # await print('CREATED ROOM [' + str(room_name) + ']')
+        logging.info('REFRESH_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
+        print('REFRESH_PERSON_DATA|    CREATED ROOM [' + str(room_name) + ']')
 
-            del personDict[str(data['personid'])]
+        # await print('PERSON HAVING ID [' + str(data['personid']) + '] AND RESPONSE ID [' + str(data['responseid']) + '] HAS BEEN PARSED')
+        logging.info("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
+        print("REFRESH_PERSON_DATA|    PERSON HAVING ID [" + str(data['personid']) + "] HAS BEEN PARSED")
 
+        if str(data['personid']) in person_parse_time_log:
+            person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
+            logging.info('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
+                person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
+                    'start_time']))
+            print('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
+                person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
+                    'start_time']))
+
+        try:
             if str(data['personid']) in personDict:
-                # await print('PERSON ID NOT DELETED FROM DICTIONARY')
-                logging.info('REFRESH_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
-                print('REFRESH_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
-            else:
-                # await print('PERSON ID DELETED FROM DICTIONARY')
-                logging.info('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
-                print('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
-        else:
-            logging.info('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
-            print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        logging.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-        print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+                for key, val in personDict[str(data['personid'])].items():
+                    sioS.enter_room(val, room_name)
+                    logging.info('REFRESH_PERSON_DATA|    SID: ' + str(val))
+                    print('REFRESH_PERSON_DATA|    SID: ' + str(val))
 
-    await sioS.close_room(room_name)
-    await sioS.disconnect(sid)
+                await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
+                # await print('PARSED DATA HAS BEEN SENT TO THE CLIENT')
+                logging.info('REFRESH_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO THE CLIENTS')
+                print('REFRESH_PERSON_DATA|    PARSED DATA HAS BEEN SENT TO THE CLIENTS')
+
+                del personDict[str(data['personid'])]
+
+                if str(data['personid']) in personDict:
+                    # await print('PERSON ID NOT DELETED FROM DICTIONARY')
+                    logging.info('REFRESH_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
+                    print('REFRESH_PERSON_DATA|    PERSON ID NOT DELETED FROM DICTIONARY')
+                else:
+                    # await print('PERSON ID DELETED FROM DICTIONARY')
+                    logging.info('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
+                    print('REFRESH_PERSON_DATA|    PERSON ID DELETED FROM DICTIONARY')
+            else:
+                logging.info('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
+                print('REFRESH_PERSON_DATA|    PERSON REFRESH DATA RECIEVED FROM PARSER BUT REQUEST NOT RECIEVED FROM CLIENT')
+        except Exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            logging.error(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+            print(repr(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+
+        await sioS.close_room(room_name)
+        await sioS.disconnect(sid)
 
 
 @sioS.on('refreshperson')
 def populateDict(sid, data):
-    print()
-    print()
-    print()
-    logging.info('REFRESHPERSON|        DATA: ' + str(data))
-    logging.info('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
-    logging.info('REFRESHPERSON|        SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
-    logging.info('REFRESHPERSON|        PERSON DICT LENGTH: ' + str(len(personDict)))
-    print('REFRESHPERSON|        DATA: ' + str(data))
-    print('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
-    # print('DATA: ' + str(data))
-    print('REFRESHPERSON|        SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
-    print('REFRESHPERSON|        PERSON DICT LENGTH: ' + str(len(personDict)))
-    # print('REFRESHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
+    environment = 'PROD'
+    if 'environment' in data:
+        if data['environment'] == 'STAGING':
+            environment = 'STAGING'
 
-    if str(data['personid']) not in person_parse_time_log:
-        person_parse_time_log[str(data['personid'])] = {}
-        person_parse_time_log[str(data['personid'])]['start_time'] = datetime.datetime.now()
+    if environment == 'STAGING':
+        logging.info('STAGING-REFRESHPERSON|        SID: ' + str(sid))
 
-    user_key = str(data['username']) + '|' + str(data['identifier'])
+        user_identifier_key = str(data['username']) + '|' + str(data['identifier'])
+        if data['personid'] in person_information_object:
+            logging.info('STAGING-REFRESHPERSON|        UPDATING PERSON OBJECT ALREADY EXIST IN PERSON DICTIONARY')
+            person_information_object[data['personid']]['users'].append(user_identifier_key)
+        else:
+            logging.info('STAGING-REFRESHPERSON|        CREATING NEW PERSON OBJECT IN PERSON DICTIONARY')
+            person_information_object[data['personid']] = {}
+            person_information_object[data['personid']]['users'] = [user_identifier_key]
+            person_information_object[data['personid']]['start_time'] = datetime.datetime.now()
+            person_information_object[data['personid']]['type'] = 'REFRESH'
 
-    if str(data['personid']) not in personDict:
-        # personDict[str(data['personid'])] = [sid]
-        personDict[str(data['personid'])] = {}
-        personDict[str(data['personid'])][user_key] = sid
+        if user_identifier_key in user_information_object:
+            logging.info('STAGING-REFRESHPERSON|        UPDATING PERSON IN USER DICTIONARY')
+            user_information_object[user_identifier_key]['person'] = data['personid']
+        else:
+            logging.info('STAGING-REFRESHPERSON|        USER "' + str(
+                user_identifier_key) + '" OBJECT NOT CREATED IN USER DICTIONARY <<<>>>')
     else:
-        # if str(sid) not in personDict[str(data['personid'])]:
-            # personDict[str(data['personid'])].append(sid)
-        personDict[str(data['personid'])][user_key] = sid
+        print()
+        print()
+        print()
+        logging.info('REFRESHPERSON|        DATA: ' + str(data))
+        logging.info('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
+        logging.info('REFRESHPERSON|        SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+        logging.info('REFRESHPERSON|        PERSON DICT LENGTH: ' + str(len(personDict)))
+        print('REFRESHPERSON|        DATA: ' + str(data))
+        print('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
+        # print('DATA: ' + str(data))
+        print('REFRESHPERSON|        SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(data['personid']) + '}')
+        print('REFRESHPERSON|        PERSON DICT LENGTH: ' + str(len(personDict)))
+        # print('REFRESHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
+
+        if str(data['personid']) not in person_parse_time_log:
+            person_parse_time_log[str(data['personid'])] = {}
+            person_parse_time_log[str(data['personid'])]['start_time'] = datetime.datetime.now()
+
+        user_key = str(data['username']) + '|' + str(data['identifier'])
+
+        if str(data['personid']) not in personDict:
+            # personDict[str(data['personid'])] = [sid]
+            personDict[str(data['personid'])] = {}
+            personDict[str(data['personid'])][user_key] = sid
+        else:
+            # if str(sid) not in personDict[str(data['personid'])]:
+                # personDict[str(data['personid'])].append(sid)
+            personDict[str(data['personid'])][user_key] = sid
 
 
 def http_socket_server():
