@@ -77,10 +77,10 @@ async def disconnect(sid):
             del user_information_object[sid_information_object[sid]]
             logging.info('DISCONNECT|           USER HAS SAME CONNECT AND DISCONNECT SID')
         else:
-            logging.info('DISCONNECT|           USER CONNECT SID DOES NOT MATCH WITH DISCONNECT SID <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object[sid]]) + ' CONNECT USER: ' + str(sid_information_object[sid]))
+            logging.info('DISCONNECT|           USER CONNECT SID DOES NOT MATCH WITH DISCONNECT SID <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object[str(sid)]]) + ' CONNECT USER: ' + str(sid_information_object[str(sid)]))
 
         del sid_information_object[sid]
-        logging.info('DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object[sid]]))
+        logging.info('DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object[str(sid)]]))
     else:
         logging.info('DISCONNECT|           NO SID TO DISCONNECT <<<>>>SID: ' + str(sid))
 
