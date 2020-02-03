@@ -61,26 +61,26 @@ async def connect(sid, environ):
         user_information_object[user_identifier_key]['person'] = ''
 
 
-    if sid not in sid_information_object:
+    if 'sid_' + str(sid) not in sid_information_object:
         logging.info('CONNECT|              SID DOES NOT EXIST IN SID DICTIONARY')
     else:
         logging.info('CONNECT|              SID ALREADY EXIST IN SID DICTIONARY <<<>>>SID: ' + str(sid) + ' USER: ' + str(user_identifier_key))
-    sid_information_object[sid] = user_identifier_key
+    sid_information_object['sid_' + str(sid)] = user_identifier_key
 
 
 @sioS.on('disconnect')
 async def disconnect(sid):
     logging.info('DISCONNECT|           SID: ' + str(sid))
 
-    if sid in sid_information_object:
-        if user_information_object[sid_information_object[sid]]['sid'] == sid:
-            del user_information_object[sid_information_object[sid]]
+    if 'sid_' + str(sid) in sid_information_object:
+        if user_information_object[sid_information_object['sid_' + str(sid)]]['sid'] == sid:
+            del user_information_object[sid_information_object['sid_' + str(sid)]]
             logging.info('DISCONNECT|           USER HAS SAME CONNECT AND DISCONNECT SID')
         else:
-            logging.info('DISCONNECT|           USER CONNECT SID DOES NOT MATCH WITH DISCONNECT SID <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object[str(sid)]]) + ' CONNECT USER: ' + str(sid_information_object[str(sid)]))
+            logging.info('DISCONNECT|           USER CONNECT SID DOES NOT MATCH WITH DISCONNECT SID <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object['sid_' + str(sid)]]) + ' CONNECT USER: ' + str(sid_information_object['sid_' + str(sid)]))
 
         del sid_information_object[sid]
-        logging.info('DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object[str(sid)]]))
+        logging.info('DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object['sid_' + str(sid)]]))
     else:
         logging.info('DISCONNECT|           NO SID TO DISCONNECT <<<>>>SID: ' + str(sid))
 
