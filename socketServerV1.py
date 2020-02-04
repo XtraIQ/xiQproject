@@ -249,7 +249,7 @@ async def disconnect(sid):
 
 @sioS.on('person_data')
 async def pushNotification(sid, data):
-
+    logging.info('STAGING-NEW_PERSON_DATA|      PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
     if data['personid'] in person_information_object:
         logging.info('STAGING-NEW_PERSON_DATA|      SID: ' + str(sid))
         logging.info('STAGING-NEW_PERSON_DATA|      TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
@@ -389,7 +389,7 @@ def populateDict(sid, data):
 
 @sioS.on('refresh_data')
 async def pushNotification(sid, data):
-
+    logging.info('STAGING-REFRESH_PERSON_DATA|  PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
     if data['personid'] in person_information_object:
         logging.info('STAGING-REFRESH_PERSON_DATA|  SID: ' + str(sid))
         logging.info('STAGING-REFRESH_PERSON_DATA|  TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
