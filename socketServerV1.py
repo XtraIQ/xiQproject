@@ -332,8 +332,10 @@ def populateDict(sid, data):
 
     if environment == 'STAGING':
         logging.info('STAGING-SEARCHPERSON|         SID: ' + str(sid))
+        logging.info('STAGING-SEARCHPERSON|         PERSON ID: ' + str(data['personid']))
 
         user_identifier_key = str(data['username']) + '|' + str(data['identifier'])
+        logging.info('STAGING-SEARCHPERSON|         USER ID: ' + str(user_identifier_key))
         if data['personid'] in person_information_object:
             logging.info('STAGING-SEARCHPERSON|         UPDATING PERSON OBJECT ALREADY EXIST IN PERSON DICTIONARY')
             person_information_object[data['personid']]['users'].append(user_identifier_key)
@@ -478,8 +480,10 @@ def populateDict(sid, data):
 
     if environment == 'STAGING':
         logging.info('STAGING-REFRESHPERSON|        SID: ' + str(sid))
+        logging.info('STAGING-REFRESHPERSON|        PERSON ID: ' + str(data['personid']))
 
         user_identifier_key = str(data['username']) + '|' + str(data['identifier'])
+        logging.info('STAGING-REFRESHPERSON|        USER ID: ' + str(user_identifier_key))
         if data['personid'] in person_information_object:
             logging.info('STAGING-REFRESHPERSON|        UPDATING PERSON OBJECT ALREADY EXIST IN PERSON DICTIONARY')
             person_information_object[data['personid']]['users'].append(user_identifier_key)
