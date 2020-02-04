@@ -249,12 +249,8 @@ async def disconnect(sid):
 
 @sioS.on('person_data')
 async def pushNotification(sid, data):
-    environment = 'PROD'
-    if 'environment' in data:
-        if data['environment'] == 'STAGING':
-            environment = 'STAGING'
 
-    if environment == 'STAGING':
+    if data['personid'] in person_information_object:
         logging.info('STAGING-NEW_PERSON_DATA|      SID: ' + str(sid))
         logging.info('STAGING-NEW_PERSON_DATA|      TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
             datetime.datetime.now() - person_information_object[data['personid']]['start_time']))
@@ -393,12 +389,8 @@ def populateDict(sid, data):
 
 @sioS.on('refresh_data')
 async def pushNotification(sid, data):
-    environment = 'PROD'
-    if 'environment' in data:
-        if data['environment'] == 'STAGING':
-            environment = 'STAGING'
 
-    if environment == 'STAGING':
+    if data['personid'] in person_information_object:
         logging.info('STAGING-REFRESH_PERSON_DATA|  SID: ' + str(sid))
         logging.info('STAGING-REFRESH_PERSON_DATA|  TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
             datetime.datetime.now() - person_information_object[data['personid']]['start_time']))
