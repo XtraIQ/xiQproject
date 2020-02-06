@@ -257,8 +257,9 @@ async def pushNotification(sid, data):
 
         room_name = str(data['personid']) + '_room'
         for user in person_information_object['person_' + str(data['personid'])]['users']:
-            logging.info('STAGING-NEW_PERSON_DATA|      USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
-            sioS.enter_room(user_information_object[user]['sid'], room_name)
+            if user_information_object[user]['person'] == 'person_' + str(data['personid']):
+                logging.info('STAGING-NEW_PERSON_DATA|      USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
+                sioS.enter_room(user_information_object[user]['sid'], room_name)
 
         def CallbackFunction(data):
             logging.info('STAGING-NEW_PERSON_DATA|      MESSAGE RECIEVED BY CLIENT ' + str(data))
@@ -348,7 +349,7 @@ def populateDict(sid, data):
 
         if user_identifier_key in user_information_object:
             logging.info('STAGING-SEARCHPERSON|         UPDATING PERSON IN USER DICTIONARY')
-            user_information_object[user_identifier_key]['person'] = data['personid']
+            user_information_object[user_identifier_key]['person'] = 'person_' + str(data['personid'])
         else:
             logging.info('STAGING-SEARCHPERSON|         USER "' + str(
                 user_identifier_key) + '" OBJECT NOT CREATED IN USER DICTIONARY <<<>>>')
@@ -401,8 +402,9 @@ async def pushNotification(sid, data):
 
         room_name = str(data['personid']) + '_room'
         for user in person_information_object['person_' + str(data['personid'])]['users']:
-            logging.info('STAGING-REFRESH_PERSON_DATA|  USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
-            sioS.enter_room(user_information_object[user]['sid'], room_name)
+            if user_information_object[user]['person'] == 'person_' + str(data['personid']):
+                logging.info('STAGING-REFRESH_PERSON_DATA|  USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
+                sioS.enter_room(user_information_object[user]['sid'], room_name)
 
         def CallbackFunction(data):
             logging.info('STAGING-REFRESH_PERSON_DATA|  MESSAGE RECIEVED BY CLIENT ' + str(data))
@@ -496,7 +498,7 @@ def populateDict(sid, data):
 
         if user_identifier_key in user_information_object:
             logging.info('STAGING-REFRESHPERSON|        UPDATING PERSON IN USER DICTIONARY')
-            user_information_object[user_identifier_key]['person'] = data['personid']
+            user_information_object[user_identifier_key]['person'] = 'person_' + str(data['personid'])
         else:
             logging.info('STAGING-REFRESHPERSON|        USER "' + str(
                 user_identifier_key) + '" OBJECT NOT CREATED IN USER DICTIONARY <<<>>>')
