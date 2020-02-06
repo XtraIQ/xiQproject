@@ -257,9 +257,13 @@ async def pushNotification(sid, data):
 
         room_name = str(data['personid']) + '_room'
         for user in person_information_object['person_' + str(data['personid'])]['users']:
-            sioS.enter_room(user, room_name)
+            logging.info('STAGING-NEW_PERSON_DATA|      USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
+            sioS.enter_room(user_information_object[user]['sid'], room_name)
 
-        await sioS.emit('profileready', json.dumps(data), room=room_name)
+        def CallbackFunction(data):
+            logging.info('STAGING-NEW_PERSON_DATA|      MESSAGE RECIEVED BY CLIENT ' + str(data))
+
+        await sioS.emit('profileready', json.dumps(data), room=room_name, callback=CallbackFunction)
         logging.info('STAGING-NEW_PERSON_DATA|      EVENT "profileready" EMITTED TO ROOM "' + str(room_name) + '"  ' + str(
             person_information_object['person_' + str(data['personid'])]['users']))
 
@@ -397,9 +401,13 @@ async def pushNotification(sid, data):
 
         room_name = str(data['personid']) + '_room'
         for user in person_information_object['person_' + str(data['personid'])]['users']:
-            sioS.enter_room(user, room_name)
+            logging.info('STAGING-REFRESH_PERSON_DATA|  USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
+            sioS.enter_room(user_information_object[user]['sid'], room_name)
 
-        await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
+        def CallbackFunction(data):
+            logging.info('STAGING-REFRESH_PERSON_DATA|  MESSAGE RECIEVED BY CLIENT ' + str(data))
+
+        await sioS.emit('refreshprofileready', json.dumps(data), room=room_name, callback=CallbackFunction)
         logging.info('STAGING-REFRESH_PERSON_DATA|  EVENT "refreshprofileready" EMITTED TO ROOM "' + str(room_name) + '"  ' + str(
                 person_information_object['person_' + str(data['personid'])]['users']))
 
