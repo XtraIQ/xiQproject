@@ -250,20 +250,20 @@ async def disconnect(sid):
 @sioS.on('person_data')
 async def pushNotification(sid, data):
     logging.info('STAGING-NEW_PERSON_DATA|      PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
-    if data['personid'] in person_information_object:
+    if 'person_' + str(data['personid']) in person_information_object:
         logging.info('STAGING-NEW_PERSON_DATA|      SID: ' + str(sid))
         logging.info('STAGING-NEW_PERSON_DATA|      TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
-            datetime.datetime.now() - person_information_object[data['personid']]['start_time']))
+            datetime.datetime.now() - person_information_object['person_' + str(data['personid'])]['start_time']))
 
         room_name = str(data['personid']) + '_room'
-        for user in person_information_object[data['personid']]['users']:
+        for user in person_information_object['person_' + str(data['personid'])]['users']:
             sioS.enter_room(user, room_name)
 
         await sioS.emit('profileready', json.dumps(data), room=room_name)
         logging.info('STAGING-NEW_PERSON_DATA|      EVENT "profileready" EMITTED TO ROOM "' + str(room_name) + '"  ' + str(
-            person_information_object[data['personid']]['users']))
+            person_information_object['person_' + str(data['personid'])]['users']))
 
-        del person_information_object[data['personid']]
+        del person_information_object['person_' + str(data['personid'])]
         logging.info('STAGING-NEW_PERSON_DATA|      PERSON DELETED FROM PERSON DICTIONARY')
     else:
         print()
@@ -332,15 +332,15 @@ def populateDict(sid, data):
 
         user_identifier_key = str(data['username']) + '|' + str(data['identifier'])
         logging.info('STAGING-SEARCHPERSON|         USER ID: ' + str(user_identifier_key))
-        if data['personid'] in person_information_object:
+        if 'person_' + str(data['personid']) in person_information_object:
             logging.info('STAGING-SEARCHPERSON|         UPDATING PERSON OBJECT ALREADY EXIST IN PERSON DICTIONARY')
-            person_information_object[data['personid']]['users'].append(user_identifier_key)
+            person_information_object['person_' + str(data['personid'])]['users'].append(user_identifier_key)
         else:
             logging.info('STAGING-SEARCHPERSON|         CREATING NEW PERSON OBJECT IN PERSON DICTIONARY')
-            person_information_object[data['personid']] = {}
-            person_information_object[data['personid']]['users'] = [user_identifier_key]
-            person_information_object[data['personid']]['start_time'] = datetime.datetime.now()
-            person_information_object[data['personid']]['type'] = 'SEARCH'
+            person_information_object['person_' + str(data['personid'])] = {}
+            person_information_object['person_' + str(data['personid'])]['users'] = [user_identifier_key]
+            person_information_object['person_' + str(data['personid'])]['start_time'] = datetime.datetime.now()
+            person_information_object['person_' + str(data['personid'])]['type'] = 'SEARCH'
 
         if user_identifier_key in user_information_object:
             logging.info('STAGING-SEARCHPERSON|         UPDATING PERSON IN USER DICTIONARY')
@@ -390,20 +390,20 @@ def populateDict(sid, data):
 @sioS.on('refresh_data')
 async def pushNotification(sid, data):
     logging.info('STAGING-REFRESH_PERSON_DATA|  PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
-    if data['personid'] in person_information_object:
+    if 'person_' + str(data['personid']) in person_information_object:
         logging.info('STAGING-REFRESH_PERSON_DATA|  SID: ' + str(sid))
         logging.info('STAGING-REFRESH_PERSON_DATA|  TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
-            datetime.datetime.now() - person_information_object[data['personid']]['start_time']))
+            datetime.datetime.now() - person_information_object['person_' + str(data['personid'])]['start_time']))
 
         room_name = str(data['personid']) + '_room'
-        for user in person_information_object[data['personid']]['users']:
+        for user in person_information_object['person_' + str(data['personid'])]['users']:
             sioS.enter_room(user, room_name)
 
         await sioS.emit('refreshprofileready', json.dumps(data), room=room_name)
         logging.info('STAGING-REFRESH_PERSON_DATA|  EVENT "refreshprofileready" EMITTED TO ROOM "' + str(room_name) + '"  ' + str(
-                person_information_object[data['personid']]['users']))
+                person_information_object['person_' + str(data['personid'])]['users']))
 
-        del person_information_object[data['personid']]
+        del person_information_object['person_' + str(data['personid'])]
         logging.info('STAGING-REFRESH_PERSON_DATA|  PERSON DELETED FROM PERSON DICTIONARY')
     else:
         print()
@@ -476,15 +476,15 @@ def populateDict(sid, data):
 
         user_identifier_key = str(data['username']) + '|' + str(data['identifier'])
         logging.info('STAGING-REFRESHPERSON|        USER ID: ' + str(user_identifier_key))
-        if data['personid'] in person_information_object:
+        if 'person_' + str(data['personid']) in person_information_object:
             logging.info('STAGING-REFRESHPERSON|        UPDATING PERSON OBJECT ALREADY EXIST IN PERSON DICTIONARY')
-            person_information_object[data['personid']]['users'].append(user_identifier_key)
+            person_information_object['person_' + str(data['personid'])]['users'].append(user_identifier_key)
         else:
             logging.info('STAGING-REFRESHPERSON|        CREATING NEW PERSON OBJECT IN PERSON DICTIONARY')
-            person_information_object[data['personid']] = {}
-            person_information_object[data['personid']]['users'] = [user_identifier_key]
-            person_information_object[data['personid']]['start_time'] = datetime.datetime.now()
-            person_information_object[data['personid']]['type'] = 'REFRESH'
+            person_information_object['person_' + str(data['personid'])] = {}
+            person_information_object['person_' + str(data['personid'])]['users'] = [user_identifier_key]
+            person_information_object['person_' + str(data['personid'])]['start_time'] = datetime.datetime.now()
+            person_information_object['person_' + str(data['personid'])]['type'] = 'REFRESH'
 
         if user_identifier_key in user_information_object:
             logging.info('STAGING-REFRESHPERSON|        UPDATING PERSON IN USER DICTIONARY')
