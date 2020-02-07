@@ -251,6 +251,7 @@ async def disconnect(sid):
 async def pushNotification(sid, data):
     logging.info('STAGING-NEW_PERSON_DATA|      PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
     if 'person_' + str(data['personid']) in person_information_object:
+        room_sids_list = []
         logging.info('STAGING-NEW_PERSON_DATA|      SID: ' + str(sid))
         logging.info('STAGING-NEW_PERSON_DATA|      TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
             datetime.datetime.now() - person_information_object['person_' + str(data['personid'])]['start_time']))
@@ -260,6 +261,8 @@ async def pushNotification(sid, data):
             if user_information_object[user]['person'] == 'person_' + str(data['personid']):
                 logging.info('STAGING-NEW_PERSON_DATA|      USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
                 sioS.enter_room(user_information_object[user]['sid'], room_name)
+                room_sids_list.append(user_information_object[user]['sid'])
+        logging.info('STAGING-NEW_PERSON_DATA|      SIDS IN ROOM <' + str(room_name) + '>: ' + str(room_sids_list))
 
         def CallbackFunction(data):
             logging.info('STAGING-NEW_PERSON_DATA|      MESSAGE RECIEVED BY CLIENT ' + str(data))
@@ -396,6 +399,7 @@ def populateDict(sid, data):
 async def pushNotification(sid, data):
     logging.info('STAGING-REFRESH_PERSON_DATA|  PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
     if 'person_' + str(data['personid']) in person_information_object:
+        room_sids_list = []
         logging.info('STAGING-REFRESH_PERSON_DATA|  SID: ' + str(sid))
         logging.info('STAGING-REFRESH_PERSON_DATA|  TIME TAKEN FOR PERSON "' + str(data['personid']) + '": ' + str(
             datetime.datetime.now() - person_information_object['person_' + str(data['personid'])]['start_time']))
@@ -405,6 +409,8 @@ async def pushNotification(sid, data):
             if user_information_object[user]['person'] == 'person_' + str(data['personid']):
                 logging.info('STAGING-REFRESH_PERSON_DATA|  USER: ' + str(user) + ' SID: ' + str(user_information_object[user]['sid']))
                 sioS.enter_room(user_information_object[user]['sid'], room_name)
+                room_sids_list.append(user_information_object[user]['sid'])
+        logging.info('STAGING-REFRESH_PERSON_DATA|  SIDS IN ROOM <' + str(room_name) + '>: ' + str(room_sids_list))
 
         def CallbackFunction(data):
             logging.info('STAGING-REFRESH_PERSON_DATA|  MESSAGE RECIEVED BY CLIENT ' + str(data))
