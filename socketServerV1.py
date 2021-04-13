@@ -202,6 +202,17 @@ async def connect(sid, environ):
 
         if user_key_exist == 0:
             logger.info('CONNECT|              USER DOES NOT EXIST IN PERSON DICT - ' + str(user_key))
+            data = {
+                'username': username,
+                'identifier': identifier,
+                'environment': environment
+            }
+
+            def CallbackFunction(data):
+                logger.info('CONNECT|              MESSAGE RECIEVED BY CLIENT ' + str(data))
+
+            await sioS.emit('no_data', json.dumps(data), to=sid, callback=CallbackFunction)
+            logger.info('CONNECT|              NO_DATA EVENT EMITTED TO SID {}'.format(sid))
     else:
         user_identifier_key = username + '|' + identifier
         logger.info('STAGING-CONNECT|              USERNAME: ' + str(username) + ' IDENTIFIER: ' + str(identifier))
@@ -219,9 +230,7 @@ async def connect(sid, environ):
         if 'sid_' + str(sid) not in sid_information_object:
             logger.info('STAGING-CONNECT|              SID DOES NOT EXIST IN SID DICTIONARY')
         else:
-            logger.info('STAGING-CONNECT|              SID ALREADY EXIST IN SID DICTIONARY <<<>>>SID: ' + str(
-                sid) + ' USER: ' + str(
-                user_identifier_key))
+            logger.info('STAGING-CONNECT|              SID ALREADY EXIST IN SID DICTIONARY. SID: ' + str(sid) + ' USER: ' + str(user_identifier_key))
         sid_information_object['sid_' + str(sid)] = user_identifier_key
 
 
