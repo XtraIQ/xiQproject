@@ -11,7 +11,7 @@ import ssl
 import urllib.parse
 
 
-log_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+log_formatter = logging.Formatter('[%(asctime)s] %(name)s - %(levelname)s - %(message)s')
 
 
 my_handler = RotatingFileHandler('socketLog.log', mode='a', maxBytes=50*1024*1024, backupCount=20)
