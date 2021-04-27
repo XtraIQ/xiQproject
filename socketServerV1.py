@@ -217,6 +217,7 @@ async def connect(sid, environ):
         user_identifier_key = username + '|' + identifier
         logger.info('STAGING-CONNECT|              USERNAME: ' + str(username) + ' IDENTIFIER: ' + str(identifier))
         logger.info('STAGING-CONNECT|              USER IDENTIFIER KEY: ' + str(user_identifier_key))
+        logger.info('STAGING-CONNECT|              [DICT LENGTH] USER INFORMATION OBJECT LENGTH {} '.format(len(user_information_object)))
 
         if user_identifier_key in user_information_object:
             logger.info('STAGING-CONNECT|              USER ALREADY EXISTED IN USER DICTIONARY, UPDATING SID')
@@ -240,6 +241,7 @@ async def connect(sid, environ):
 @sioS.on('disconnect')
 async def disconnect(sid):
     logger.info('STAGING-DISCONNECT|           SID: ' + str(sid))
+    logger.info('STAGING-DISCONNECT|           [DICT LENGTH] SID INFORMATION OBJECT LENGTH {} '.format(len(sid_information_object)))
 
     if 'sid_' + str(sid) in sid_information_object:
         if user_information_object[sid_information_object['sid_' + str(sid)]]['sid'] == sid:
@@ -337,7 +339,7 @@ def populateDict(sid, data):
         logger.info('SEARCHPERSON|         NEW PERSON PROFILE REQUEST RECEIVED')
         logger.info('SEARCHPERSON|         SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(
             data['personid']) + '}')
-        logger.info('SEARCHPERSON|         PERSON DICT LENGTH: ' + str(len(personDict)))
+        logger.info('SEARCHPERSON|         [DICT LENGTH] PERSON DICT LENGTH {} PERSON PARSE TIME LOG LENGTH {}'.format(len(personDict), len(person_parse_time_log)))
         # print('SEARCHPERSON|    SIDS FOR PERSON [' + str(data['personid']) + '] ARE: ' + str(len(personDict[str(data['personid'])])))
 
         if str(data['personid']) not in person_parse_time_log:
@@ -361,6 +363,7 @@ def populateDict(sid, data):
     else:
         logger.info('STAGING-SEARCHPERSON|         SID: ' + str(sid))
         logger.info('STAGING-SEARCHPERSON|         PERSON ID: ' + str(data['personid']))
+        logger.info('STAGING-SEARCHPERSON|         [DICT LENGTH] PERSON INFORMATION OBJECT LENGTH {}'.format(len(person_information_object)))
 
         if 'Optional' in data['username']:
             data['username'] = ExtractUsername(data['username'])
@@ -471,7 +474,7 @@ def populateDict(sid, data):
         logger.info('REFRESHPERSON|        PERSON REFRESH REQUEST RECEIVED')
         logger.info('REFRESHPERSON|        SESSION ID: {' + str(sid) + '} REQUEST FOR PERSON HAVING ID: {' + str(
             data['personid']) + '}')
-        logger.info('REFRESHPERSON|        PERSON DICT LENGTH: ' + str(len(personDict)))
+        logger.info('SEARCHPERSON|         [DICT LENGTH] PERSON DICT LENGTH {} PERSON PARSE TIME LOG LENGTH {}'.format(len(personDict), len(person_parse_time_log)))
 
         if str(data['personid']) not in person_parse_time_log:
             person_parse_time_log[str(data['personid'])] = {}
@@ -490,6 +493,7 @@ def populateDict(sid, data):
     else:
         logger.info('STAGING-REFRESHPERSON|        SID: ' + str(sid))
         logger.info('STAGING-REFRESHPERSON|        PERSON ID: ' + str(data['personid']))
+        logger.info('STAGING-REFRESHPERSON|        [DICT LENGTH] PERSON INFORMATION OBJECT LENGTH {}'.format(len(person_information_object)))
 
         if 'Optional' in data['username']:
             data['username'] = ExtractUsername(data['username'])
