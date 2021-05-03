@@ -9,6 +9,7 @@ from logging.handlers import RotatingFileHandler
 import json
 import ssl
 import urllib.parse
+import tracemalloc
 
 
 log_formatter = logging.Formatter('[%(asctime)s] %(name)s - %(levelname)s - %(message)s')
@@ -36,6 +37,8 @@ person_parse_time_log = {}
 user_information_object = {}
 person_information_object = {}
 sid_information_object = {}
+
+tracemalloc.start()
 
 def is_process_running(file_name):
     is_running = False
@@ -172,8 +175,8 @@ async def connect(sid, environ):
 
     decoded_env_data = urllib.parse.unquote(environ['QUERY_STRING'])
     env_list = str(decoded_env_data).split('&')
-    logger.info('STAGING-CONNECT|              ENVIRONMENT VARIABLE: ' + str(environ['QUERY_STRING']))
-    logger.info('STAGING-CONNECT|              DECODED DATA: ' + str(decoded_env_data))
+    logger.info('CONNECT|              ENVIRONMENT VARIABLE: ' + str(environ['QUERY_STRING']))
+    logger.info('CONNECT|              DECODED DATA: ' + str(decoded_env_data))
 
     for var in env_list:
         if 'username' in str(var):
@@ -234,35 +237,54 @@ async def connect(sid, environ):
             logger.info('STAGING-CONNECT|              SID ALREADY EXIST IN SID DICTIONARY. SID: ' + str(sid) + ' USER: ' + str(user_identifier_key))
         sid_information_object['sid_' + str(sid)] = user_identifier_key
 
+    logger.info("CONNECT|              **************MEMORY RESULTS**************")
+    current, peak = tracemalloc.get_traced_memory()
+    logger.info(f"CONNECT|              Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
+
+    snapshot = tracemalloc.take_snapshot()
+
+    for stat in snapshot.statistics("lineno"):
+        logger.info(stat)
+    logger.info("CONNECT|              **************MEMORY RESULTS**************")
 
     # logger.info('connection environment: ' + str(environ))
     # print('connection environment: ' + str())
 
 @sioS.on('disconnect')
 async def disconnect(sid):
-    logger.info('STAGING-DISCONNECT|           SID: ' + str(sid))
-    logger.info('STAGING-DISCONNECT|           [DICT LENGTH] SID INFORMATION OBJECT LENGTH {} '.format(len(sid_information_object)))
+    logger.info('DISCONNECT|           SID: ' + str(sid))
+    logger.info('DISCONNECT|           [DICT LENGTH] SID INFORMATION OBJECT LENGTH {} '.format(len(sid_information_object)))
 
     if 'sid_' + str(sid) in sid_information_object:
         if user_information_object[sid_information_object['sid_' + str(sid)]]['sid'] == sid:
             del user_information_object[sid_information_object['sid_' + str(sid)]]
-            logger.info('STAGING-DISCONNECT|           USER HAS SAME CONNECT AND DISCONNECT SID')
+            logger.info('DISCONNECT|           USER HAS SAME CONNECT AND DISCONNECT SID')
         else:
-            logger.info('STAGING-DISCONNECT|           USER CONNECT SID DOES NOT MATCH WITH DISCONNECT SID <<<>>>DISCONNECT SID: ' + str(
+            logger.info('DISCONNECT|           USER CONNECT SID DOES NOT MATCH WITH DISCONNECT SID <<<>>>DISCONNECT SID: ' + str(
                     sid) + ' CONNECT SID: ' + str(
                     user_information_object[sid_information_object['sid_' + str(sid)]]) + ' CONNECT USER: ' + str(
                     sid_information_object['sid_' + str(sid)]))
 
         del sid_information_object[sid]
-        logger.info('STAGING-DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(
+        logger.info('DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(
             sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object['sid_' + str(sid)]]))
     else:
-        logger.info('STAGING-DISCONNECT|           NO SID TO DISCONNECT <<<>>>SID: ' + str(sid))
+        logger.info('DISCONNECT|           NO SID TO DISCONNECT <<<>>>SID: ' + str(sid))
+
+    logger.info("DISCONNECT|           **************MEMORY RESULTS**************")
+    current, peak = tracemalloc.get_traced_memory()
+    logger.info(f"DISCONNECT|           Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
+
+    snapshot = tracemalloc.take_snapshot()
+
+    for stat in snapshot.statistics("lineno"):
+        logger.info(stat)
+    logger.info("DISCONNECT|           **************MEMORY RESULTS**************")
 
 
 @sioS.on('person_data')
 async def pushNotification(sid, data):
-    logger.info('STAGING-NEW_PERSON_DATA|      PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
+    logger.info('NEW_PERSON_DATA|      PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
     if 'person_' + str(data['personid']) in person_information_object:
         room_sids_list = []
         logger.info('STAGING-NEW_PERSON_DATA|      SID: ' + str(sid))
@@ -326,6 +348,16 @@ async def pushNotification(sid, data):
         await sioS.close_room(room_name)
         await sioS.disconnect(sid)
 
+    logger.info("NEW_PERSON_DATA|      **************MEMORY RESULTS**************")
+    current, peak = tracemalloc.get_traced_memory()
+    logger.info(f"NEW_PERSON_DATA|      Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
+
+    snapshot = tracemalloc.take_snapshot()
+
+    for stat in snapshot.statistics("lineno"):
+        logger.info(stat)
+    logger.info("NEW_PERSON_DATA|      **************MEMORY RESULTS**************")
+
 
 @sioS.on('searchperson')
 def populateDict(sid, data):
@@ -387,6 +419,16 @@ def populateDict(sid, data):
             logger.info('STAGING-SEARCHPERSON|         USER "' + str(
                 user_identifier_key) + '" OBJECT NOT CREATED IN USER DICTIONARY <<<>>>')
 
+    logger.info("SEARCHPERSON|         **************MEMORY RESULTS**************")
+    current, peak = tracemalloc.get_traced_memory()
+    logger.info(f"SEARCHPERSON|         Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
+
+    snapshot = tracemalloc.take_snapshot()
+
+    for stat in snapshot.statistics("lineno"):
+        logger.info(stat)
+    logger.info("SEARCHPERSON|         **************MEMORY RESULTS**************")
+
 
 
 
@@ -395,7 +437,7 @@ def populateDict(sid, data):
 
 @sioS.on('refresh_data')
 async def pushNotification(sid, data):
-    logger.info('STAGING-REFRESH_PERSON_DATA|  PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
+    logger.info('REFRESH_PERSON_DATA|    PERSON DICTIONARY KEYS: ' + str(person_information_object.keys()))
     if 'person_' + str(data['personid']) in person_information_object:
         room_sids_list = []
         logger.info('STAGING-REFRESH_PERSON_DATA|  SID: ' + str(sid))
@@ -461,6 +503,16 @@ async def pushNotification(sid, data):
         await sioS.close_room(room_name)
         await sioS.disconnect(sid)
 
+    logger.info("REFRESH_PERSON_DATA|    **************MEMORY RESULTS**************")
+    current, peak = tracemalloc.get_traced_memory()
+    logger.info(f"REFRESH_PERSON_DATA|    Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
+
+    snapshot = tracemalloc.take_snapshot()
+
+    for stat in snapshot.statistics("lineno"):
+        logger.info(stat)
+    logger.info("REFRESH_PERSON_DATA|    **************MEMORY RESULTS**************")
+
 
 @sioS.on('refreshperson')
 def populateDict(sid, data):
@@ -516,6 +568,16 @@ def populateDict(sid, data):
         else:
             logger.info('STAGING-REFRESHPERSON|        USER "' + str(
                 user_identifier_key) + '" OBJECT NOT CREATED IN USER DICTIONARY <<<>>>')
+
+    logger.info("SEARCHPERSON|         **************MEMORY RESULTS**************")
+    current, peak = tracemalloc.get_traced_memory()
+    logger.info(f"SEARCHPERSON|         Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
+
+    snapshot = tracemalloc.take_snapshot()
+
+    for stat in snapshot.statistics("lineno"):
+        logger.info(stat)
+    logger.info("SEARCHPERSON|         **************MEMORY RESULTS**************")
 
 
 def http_socket_server():
