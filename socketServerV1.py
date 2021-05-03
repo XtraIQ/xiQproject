@@ -241,10 +241,10 @@ async def connect(sid, environ):
     current, peak = tracemalloc.get_traced_memory()
     logger.info(f"CONNECT|              Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
 
-    snapshot = tracemalloc.take_snapshot()
-
-    for stat in snapshot.statistics("lineno"):
-        logger.info(stat)
+    # snapshot = tracemalloc.take_snapshot()
+    #
+    # for stat in snapshot.statistics("lineno"):
+    #     logger.info(stat)
     logger.info("CONNECT|              **************MEMORY RESULTS**************")
 
     # logger.info('connection environment: ' + str(environ))
@@ -275,10 +275,10 @@ async def disconnect(sid):
     current, peak = tracemalloc.get_traced_memory()
     logger.info(f"DISCONNECT|           Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
 
-    snapshot = tracemalloc.take_snapshot()
-
-    for stat in snapshot.statistics("lineno"):
-        logger.info(stat)
+    # snapshot = tracemalloc.take_snapshot()
+    #
+    # for stat in snapshot.statistics("lineno"):
+    #     logger.info(stat)
     logger.info("DISCONNECT|           **************MEMORY RESULTS**************")
 
 
@@ -352,10 +352,10 @@ async def pushNotification(sid, data):
     current, peak = tracemalloc.get_traced_memory()
     logger.info(f"NEW_PERSON_DATA|      Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
 
-    snapshot = tracemalloc.take_snapshot()
-
-    for stat in snapshot.statistics("lineno"):
-        logger.info(stat)
+    # snapshot = tracemalloc.take_snapshot()
+    #
+    # for stat in snapshot.statistics("lineno"):
+    #     logger.info(stat)
     logger.info("NEW_PERSON_DATA|      **************MEMORY RESULTS**************")
 
 
@@ -423,10 +423,10 @@ def populateDict(sid, data):
     current, peak = tracemalloc.get_traced_memory()
     logger.info(f"SEARCHPERSON|         Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
 
-    snapshot = tracemalloc.take_snapshot()
-
-    for stat in snapshot.statistics("lineno"):
-        logger.info(stat)
+    # snapshot = tracemalloc.take_snapshot()
+    #
+    # for stat in snapshot.statistics("lineno"):
+    #     logger.info(stat)
     logger.info("SEARCHPERSON|         **************MEMORY RESULTS**************")
 
 
@@ -507,10 +507,10 @@ async def pushNotification(sid, data):
     current, peak = tracemalloc.get_traced_memory()
     logger.info(f"REFRESH_PERSON_DATA|    Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
 
-    snapshot = tracemalloc.take_snapshot()
-
-    for stat in snapshot.statistics("lineno"):
-        logger.info(stat)
+    # snapshot = tracemalloc.take_snapshot()
+    #
+    # for stat in snapshot.statistics("lineno"):
+    #     logger.info(stat)
     logger.info("REFRESH_PERSON_DATA|    **************MEMORY RESULTS**************")
 
 
@@ -573,10 +573,10 @@ def populateDict(sid, data):
     current, peak = tracemalloc.get_traced_memory()
     logger.info(f"SEARCHPERSON|         Current memory usage is {current / 10 ** 6} MB; Peak was {peak / 10 ** 6} MB")
 
-    snapshot = tracemalloc.take_snapshot()
-
-    for stat in snapshot.statistics("lineno"):
-        logger.info(stat)
+    # snapshot = tracemalloc.take_snapshot()
+    #
+    # for stat in snapshot.statistics("lineno"):
+    #     logger.info(stat)
     logger.info("SEARCHPERSON|         **************MEMORY RESULTS**************")
 
 
