@@ -265,7 +265,7 @@ async def disconnect(sid):
                     user_information_object[sid_information_object['sid_' + str(sid)]]) + ' CONNECT USER: ' + str(
                     sid_information_object['sid_' + str(sid)]))
 
-        del sid_information_object[sid]
+        del sid_information_object['sid_' + str(sid)]
         logger.info('DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(
             sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object['sid_' + str(sid)]]))
     else:
@@ -320,7 +320,7 @@ async def pushNotification(sid, data):
         if str(data['personid']) in person_parse_time_log:
             person_parse_time_log[str(data['personid'])]['end_time'] = datetime.datetime.now()
             logger.info('NEW_PERSON_DATA|      TIME TAKEN BY NEW PERSON "' + str(data['personid']) + '" PARSE IS: ' + str(person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])]['start_time']))
-
+            del person_parse_time_log[str(data['personid'])]
         try:
             if str(data['personid']) in personDict:
                 for key, val in personDict[str(data['personid'])].items():
@@ -475,6 +475,7 @@ async def pushNotification(sid, data):
             logger.info('REFRESH_PERSON_DATA|    TIME TAKEN BY REFRESH PERSON "' + str(data['personid']) + '" IS: ' + str(
                 person_parse_time_log[str(data['personid'])]['end_time'] - person_parse_time_log[str(data['personid'])][
                     'start_time']))
+            del person_parse_time_log[str(data['personid'])]
 
         try:
             if str(data['personid']) in personDict:
