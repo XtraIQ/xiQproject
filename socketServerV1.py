@@ -266,6 +266,7 @@ async def disconnect(sid):
                     sid_information_object['sid_' + str(sid)]))
 
         del sid_information_object['sid_' + str(sid)]
+        await sioS.disconnect(sid)
         logger.info('DISCONNECT|           CONNECTED SID REMOVED FROM SID DICTIONARY <<<>>>DISCONNECT SID: ' + str(
             sid) + ' CONNECT SID: ' + str(user_information_object[sid_information_object['sid_' + str(sid)]]))
     else:
